@@ -54,3 +54,17 @@ INSERT IGNORE INTO reviews (id, restaurant_id, user_id, rating, review) VALUES (
 INSERT IGNORE INTO reviews (id, restaurant_id, user_id, rating, review) VALUES (10,1,10,4,'子供がとても楽しんでいました。');
 INSERT IGNORE INTO reviews (id, restaurant_id, user_id, rating, review) VALUES (11,1,11,3,'お腹いっぱいでとても満足です。');
 INSERT IGNORE INTO reviews (id, restaurant_id, user_id, rating, review) VALUES (12,1,12,4,'初めて利用しました。良かったです。');
+
+-- favoriteテーブル
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (1,1,1);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (2,1,2);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (3,1,3);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (4,1,4);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (5,1,5);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (6,1,6);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (7,1,7);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (8,1,8);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (9,1,9);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (10,1,10);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (11,1,11);
+INSERT IGNORE INTO favorites (id, restaurant_id, user_id) VALUES (12,1,12);

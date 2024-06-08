@@ -24,31 +24,40 @@ import com.example.nagoyameshi.form.ReviewRegisterForm;
 import com.example.nagoyameshi.repository.RestaurantRepository;
 import com.example.nagoyameshi.repository.ReviewRepository;
 import com.example.nagoyameshi.security.UserDetailsImpl;
-import com.example.nagoyameshi.service.RestaurantService;
 import com.example.nagoyameshi.service.ReviewService;
+
+import lombok.extern.slf4j.Slf4j;
 
 //レビューコンテンツ
 @Controller
-@RequestMapping("/restaurants/{restaurantId}/review")
+@RequestMapping("/restaurants/{restaurantId}/reviews")
+@Slf4j
 public class ReviewController {
 	private final ReviewRepository reviewRepository;
 	private final ReviewService reviewService;
 	private final RestaurantRepository restaurantRepository;
 
 	public ReviewController(ReviewRepository reviewRepository, RestaurantRepository restaurantRepository,
-			ReviewService reviewService, RestaurantService restaurantService) {
+			ReviewService reviewService) {
 		this.reviewRepository = reviewRepository;
 		this.reviewService = reviewService;
 		this.restaurantRepository = restaurantRepository;
-
 	}
 
 	@GetMapping
-	public String index(Model model,
+	//public String index(Model model,@PageableDefault(page = 0, size = 6, sort = "id", direction = Direction.ASC)Pageable pageable) {
+	public String index(Integer restaurantId, Model model,
 			@PageableDefault(page = 0, size = 6, sort = "id", direction = Direction.ASC) Pageable pageable) {
 
 		Page<Review> reviewPage;
+
 		reviewPage = reviewRepository.findAll(pageable);
+		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
+
+		log.info("Found restaurant: {}", restaurant);
+		log.info("Found reviews: {}", reviewPage.getContent());
+
+		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewPage", reviewPage);
 		return "restaurants/show";
 	}
@@ -56,12 +65,13 @@ public class ReviewController {
 	@GetMapping("/table")
 	public String table(@PathVariable(name = "restaurantId") Integer restaurantId, Model model,
 			@PageableDefault(page = 0, size = 10, sort = "id", direction = Direction.ASC) Pageable pageable) {
+
 		Page<Review> reviewPage;
 		reviewPage = reviewRepository.findAll(pageable);
 		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
 		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewPage", reviewPage);
-		return "review/table";
+		return "reviews/table";
 	}
 
 	@GetMapping("/register")
@@ -69,7 +79,7 @@ public class ReviewController {
 		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
 		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewRegisterForm", new ReviewRegisterForm());
-		return "review/register";
+		return "reviews/register";
 	}
 
 	@PostMapping("/create")
@@ -77,8 +87,9 @@ public class ReviewController {
 			RedirectAttributes redirectAttributes,
 			@AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
 		if (bindingResult.hasErrors()) {
-			return "restaurants/show/review/register";
+			return "restaurants/show/reviews/register";
 		}
+
 		User user = userDetailsImpl.getUser();
 		reviewRegisterForm.setUserId(user.getId());
 		reviewService.create(reviewRegisterForm);
@@ -99,7 +110,7 @@ public class ReviewController {
 				review.getReview());
 		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewEditForm", reviewEditForm);
-		return "review/edit";
+		return "reviews/edit";
 	}
 
 	@PostMapping("{id}/update")
@@ -107,14 +118,14 @@ public class ReviewController {
 			@PathVariable(name = "restaurantId") Integer restaurantId, Model model,
 			RedirectAttributes redirectAttributes) {
 		if (bindingResult.hasErrors()) {
-			return "review/edit";
+			return "reviews/edit";
 		}
+
 		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
 		model.addAttribute("restaurant", restaurant);
 		reviewService.update(reviewEditForm);
 		redirectAttributes.addFlashAttribute("successMessage", "レビューを編集しました。");
 		return "redirect:/restaurants/{restaurantId}";
-
 	}
 
 	@PostMapping("/{id}/delete")

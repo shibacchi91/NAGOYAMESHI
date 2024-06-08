@@ -182,10 +182,10 @@
 								<div class="text-center">
 									<h1>レビュー</h1>
 								</div>
-								
+
 								<div class="text-center" sec:authorize="isAuthenticated()">
 									<a class="btn text-white shadow-sm w-50 nagoyameshi-btn"
-										th:href="@{/restaurants/__${restaurant.getId()}__/review/register}">レビューを投稿する</a>
+										th:href="@{/restaurants/__${restaurant.getId()}__/reviews/register}">レビューを投稿する</a>
 								</div>
 								<!--レビューがないときのメッセージ-->
 								<div class="text-center" th:if="${reviewPage == null || #lists.isEmpty(reviewPage)}">
@@ -205,8 +205,8 @@
 														<div
 															th:if="${review.getUser().getId()==#authentication.principal.user.id}">
 															<a
-																th:href="@{/restaurants/__${restaurant.getId()}__/review/__${review.getId()}__/edit}">編集</a>
-															<a th:href="@{/restaurants/__${restaurant.getId()}__/review/__${review.getId()}__/delete}"
+																th:href="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/edit}">編集</a>
+															<a th:href="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/delete}"
 																class="nagoyameshi-link-danger" data-bs-toggle="modal"
 																th:data-bs-target="${'#deleteReviewModal' + review.getId()}">削除</a>
 															<div class="modal fade"
@@ -226,7 +226,7 @@
 																		</div>
 																		<div class="modal-footer">
 																			<form method="post"
-																				th:action="@{/restaurants/__${restaurant.getId()}__/review/__${review.getId()}__/delete}">
+																				th:action="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/delete}">
 																				<button type="submit"
 																					class="btn nagoyameshi-btn-danger text-white shadow-sm">削除</button>
 																			</form>
@@ -266,7 +266,7 @@
 									<div class="text-center"
 										th:if="${reviewPage != null && !#lists.isEmpty(reviewPage)}">
 										<a
-											th:href="@{/restaurants/__${restaurant.getId()}__/review/table}">すべてのレビューを見る</a>
+											th:href="@{/restaurants/__${restaurant.getId()}__/reviews/table}">すべてのレビューを見る</a>
 									</div>
 								</div>
 

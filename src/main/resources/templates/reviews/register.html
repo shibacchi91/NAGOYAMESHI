@@ -29,7 +29,7 @@
 							<span th:text="@{__${restaurant.getName()}__}"></span>のレビュー投稿
 						</h1>
 
-						<form method="post" th:action="@{/restaurants/__${restaurant.getId()}__/review/create}"
+						<form method="post" th:action="@{/restaurants/__${restaurant.getId()}__/reviews/create}"
 							th:object="${reviewRegisterForm}" enctype="multipart/form-data">
 							<div class="form-group row mb-3">
 								<div class="col-md-4">

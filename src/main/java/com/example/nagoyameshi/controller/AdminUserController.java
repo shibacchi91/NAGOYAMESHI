@@ -30,7 +30,7 @@ public class AdminUserController {
         Page<User> userPage;
         
         if (keyword != null && !keyword.isEmpty()) {
-            userPage = userRepository.findByNameLikeOrFuriganaLike("%" + keyword + "%", "%" + keyword + "%", pageable);                   
+            userPage = userRepository.findByNameLikeOrFuriganaLikeOrEmailLike("%" + keyword + "%", "%" + keyword + "%", "%" + keyword + "%", pageable);                   
         } else {
             userPage = userRepository.findAll(pageable);
         }        
