@@ -13,15 +13,18 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.nagoyameshi.entity.Restaurant;
 import com.example.nagoyameshi.form.RestaurantEditForm;
 import com.example.nagoyameshi.form.RestaurantRegisterForm;
+import com.example.nagoyameshi.repository.FavoriteRepository;
 import com.example.nagoyameshi.repository.RestaurantRepository;
 
 @Service
 
 public class RestaurantService {
     private final RestaurantRepository restaurantRepository;    
+    private final FavoriteRepository favoriteRepository;
     
-    public RestaurantService(RestaurantRepository restaurantRepository) {
+    public RestaurantService(RestaurantRepository restaurantRepository,FavoriteRepository favoriteRepository) {
         this.restaurantRepository = restaurantRepository;
+        this.favoriteRepository = favoriteRepository;
     }
     @Transactional
     public void create(RestaurantRegisterForm restaurantRegisterForm) {
@@ -60,6 +63,8 @@ public class RestaurantService {
             restaurant.setImageName(hashedImageName);
         }
         
+
+        
         restaurant.setName(restaurantEditForm.getName());                
         restaurant.setDescription(restaurantEditForm.getDescription());
         restaurant.setPrice(restaurantEditForm.getPrice());
@@ -70,6 +75,14 @@ public class RestaurantService {
                     
         restaurantRepository.save(restaurant);
     }    
+    
+    @Transactional
+    public void deleteRestaurant(Integer restaurantId) {
+        // まず関連するfavoritesのレコードを削除
+        favoriteRepository.deleteByRestaurantId(restaurantId);
+        // その後レストランを削除
+        restaurantRepository.deleteById(restaurantId);
+    }
     
     // UUIDを使って生成したファイル名を返す
     public String generateNewFileName(String fileName) {

@@ -26,12 +26,9 @@ import com.example.nagoyameshi.repository.ReviewRepository;
 import com.example.nagoyameshi.security.UserDetailsImpl;
 import com.example.nagoyameshi.service.ReviewService;
 
-import lombok.extern.slf4j.Slf4j;
-
 //レビューコンテンツ
 @Controller
-@RequestMapping("/restaurants/{restaurantId}/reviews")
-@Slf4j
+@RequestMapping("/restaurants/{restaurantId}/review")
 public class ReviewController {
 	private final ReviewRepository reviewRepository;
 	private final ReviewService reviewService;
@@ -46,18 +43,11 @@ public class ReviewController {
 
 	@GetMapping
 	//public String index(Model model,@PageableDefault(page = 0, size = 6, sort = "id", direction = Direction.ASC)Pageable pageable) {
-	public String index(Integer restaurantId, Model model,
+	public String index(Model model,
 			@PageableDefault(page = 0, size = 6, sort = "id", direction = Direction.ASC) Pageable pageable) {
 
 		Page<Review> reviewPage;
-
 		reviewPage = reviewRepository.findAll(pageable);
-		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
-
-		log.info("Found restaurant: {}", restaurant);
-		log.info("Found reviews: {}", reviewPage.getContent());
-
-		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewPage", reviewPage);
 		return "restaurants/show";
 	}
@@ -65,13 +55,12 @@ public class ReviewController {
 	@GetMapping("/table")
 	public String table(@PathVariable(name = "restaurantId") Integer restaurantId, Model model,
 			@PageableDefault(page = 0, size = 10, sort = "id", direction = Direction.ASC) Pageable pageable) {
-
 		Page<Review> reviewPage;
 		reviewPage = reviewRepository.findAll(pageable);
 		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
 		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewPage", reviewPage);
-		return "reviews/table";
+		return "review/table";
 	}
 
 	@GetMapping("/register")
@@ -79,7 +68,7 @@ public class ReviewController {
 		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
 		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewRegisterForm", new ReviewRegisterForm());
-		return "reviews/register";
+		return "review/register";
 	}
 
 	@PostMapping("/create")
@@ -87,9 +76,8 @@ public class ReviewController {
 			RedirectAttributes redirectAttributes,
 			@AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
 		if (bindingResult.hasErrors()) {
-			return "restaurants/show/reviews/register";
+			return "restaurants/show/review/register";
 		}
-
 		User user = userDetailsImpl.getUser();
 		reviewRegisterForm.setUserId(user.getId());
 		reviewService.create(reviewRegisterForm);
@@ -110,22 +98,21 @@ public class ReviewController {
 				review.getReview());
 		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewEditForm", reviewEditForm);
-		return "reviews/edit";
+		return "review/edit";
 	}
 
 	@PostMapping("{id}/update")
 	public String update(@ModelAttribute @Validated ReviewEditForm reviewEditForm, BindingResult bindingResult,
-			@PathVariable(name = "restaurantId") Integer restaurantId, Model model,
-			RedirectAttributes redirectAttributes) {
+			@PathVariable(name = "restaurantId") Integer restaurantId, Model model, RedirectAttributes redirectAttributes) {
 		if (bindingResult.hasErrors()) {
-			return "reviews/edit";
+			return "review/edit";
 		}
-
 		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
 		model.addAttribute("restaurant", restaurant);
 		reviewService.update(reviewEditForm);
 		redirectAttributes.addFlashAttribute("successMessage", "レビューを編集しました。");
 		return "redirect:/restaurants/{restaurantId}";
+
 	}
 
 	@PostMapping("/{id}/delete")

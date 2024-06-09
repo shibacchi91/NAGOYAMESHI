@@ -26,4 +26,6 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Integer> {
 
 	boolean existsByRestaurantIdAndUserId(Integer restaurantId, Integer userId);
 
+	@Transactional
+	void deleteByRestaurantId(Integer restaurantId);
 }

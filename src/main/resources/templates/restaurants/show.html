@@ -27,7 +27,25 @@
 								<li class="breadcrumb-item active" aria-current="page">店舗詳細</li>
 							</ol>
 						</nav>
+						<div sec:authorize="hasRole('ROLE_PREMIUM')">
 
+							<!-- Thymeleafテンプレート内のお気に入り解除フォーム -->
+							<form th:if="${isFavorite}" method="post"
+								th:action="@{/favorites/{restaurantId}/delete(restaurantId=${restaurant.id})}">
+								<input type="hidden" name="restaurantId" th:value="${restaurant.id}">
+								<input type="hidden" name="userId" th:value="${#authentication.principal.user.id}">
+								<button type="submit">&#9829; お気に入り解除</button>
+							</form>
+						</div>
+
+
+						<!-- Thymeleafテンプレート内のお気に入り追加フォーム -->
+						<form th:unless="${isFavorite}" method="post"
+							th:action="@{/favorites/{restaurantId}/create(restaurantId=${restaurant.id})}">
+							<input type="hidden" name="restaurantId" th:value="${restaurant.id}">
+							<input type="hidden" name="userId" th:value="${#authentication.principal.user.id}">
+							<button type="submit">&#9825; お気に入り追加</button>
+						</form>
 
 
 
@@ -182,10 +200,12 @@
 								<div class="text-center">
 									<h1>レビュー</h1>
 								</div>
+								<div sec:authorize="hasRole('ROLE_PREMIUM')">
 
-								<div class="text-center" sec:authorize="isAuthenticated()">
-									<a class="btn text-white shadow-sm w-50 nagoyameshi-btn"
-										th:href="@{/restaurants/__${restaurant.getId()}__/reviews/register}">レビューを投稿する</a>
+									<div class="text-center" sec:authorize="isAuthenticated()">
+										<a class="btn text-white shadow-sm w-50 nagoyameshi-btn"
+											th:href="@{/restaurants/__${restaurant.getId()}__/reviews/register}">レビューを投稿する</a>
+									</div>
 								</div>
 								<!--レビューがないときのメッセージ-->
 								<div class="text-center" th:if="${reviewPage == null || #lists.isEmpty(reviewPage)}">
@@ -202,34 +222,37 @@
 													<h3 class="card-title mb-3" th:text="${review.getUser().getName()}">
 													</h3>
 													<div class="position-absolute top-0 end-0 m-3">
-														<div
-															th:if="${review.getUser().getId()==#authentication.principal.user.id}">
-															<a
-																th:href="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/edit}">編集</a>
-															<a th:href="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/delete}"
-																class="nagoyameshi-link-danger" data-bs-toggle="modal"
-																th:data-bs-target="${'#deleteReviewModal' + review.getId()}">削除</a>
-															<div class="modal fade"
-																th:id="${'deleteReviewModal' + review.getId()}"
-																tabindex="-1"
-																th:aria-labelledby="${'deleteReviewModalLabel' + review.getId()}">
-																<div class="modal-dialog">
-																	<div class="modal-content">
-																		<div class="modal-header">
-																			<h5 class="modal-title"
-																				th:id="${'deleteReviewModalLabel' + review.getId()}"
-																				th:text="${restaurant.getName() + 'のレビューを削除してもよろしいですか？'}">
-																			</h5>
-																			<button type="button" class="btn-close"
-																				data-bs-dismiss="modal"
-																				aria-label="閉じる"></button>
-																		</div>
-																		<div class="modal-footer">
-																			<form method="post"
-																				th:action="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/delete}">
-																				<button type="submit"
-																					class="btn nagoyameshi-btn-danger text-white shadow-sm">削除</button>
-																			</form>
+														<div sec:authorize="hasRole('ROLE_PREMIUM')">
+															<div
+																th:if="${review.getUser().getId()==#authentication.principal.user.id}">
+																<a
+																	th:href="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/edit}">編集</a>
+																<a th:href="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/delete}"
+																	class="nagoyameshi-link-danger"
+																	data-bs-toggle="modal"
+																	th:data-bs-target="${'#deleteReviewModal' + review.getId()}">削除</a>
+																<div class="modal fade"
+																	th:id="${'deleteReviewModal' + review.getId()}"
+																	tabindex="-1"
+																	th:aria-labelledby="${'deleteReviewModalLabel' + review.getId()}">
+																	<div class="modal-dialog">
+																		<div class="modal-content">
+																			<div class="modal-header">
+																				<h5 class="modal-title"
+																					th:id="${'deleteReviewModalLabel' + review.getId()}"
+																					th:text="${restaurant.getName() + 'のレビューを削除してもよろしいですか？'}">
+																				</h5>
+																				<button type="button" class="btn-close"
+																					data-bs-dismiss="modal"
+																					aria-label="閉じる"></button>
+																			</div>
+																			<div class="modal-footer">
+																				<form method="post"
+																					th:action="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/delete}">
+																					<button type="submit"
+																						class="btn naoyameshi-btn-danger text-white shadow-sm">削除</button>
+																				</form>
+																			</div>
 																		</div>
 																	</div>
 																</div>

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -21,6 +22,7 @@ import com.example.nagoyameshi.repository.RestaurantRepository;
 import com.example.nagoyameshi.repository.ReviewRepository;
 import com.example.nagoyameshi.security.UserDetailsImpl;
 import com.example.nagoyameshi.service.FavoriteService;
+import com.example.nagoyameshi.service.RestaurantService;
 
 @Controller
 @RequestMapping("/restaurants")
@@ -28,13 +30,14 @@ public class RestaurantController {
 	private final RestaurantRepository restaurantRepository;
 	private final ReviewRepository reviewRepository;
 	private final FavoriteService favoriteService;
+	private final RestaurantService restaurantService;
 
-	
-	public RestaurantController(RestaurantRepository restaurantRepository, ReviewRepository reviewRepository,FavoriteService favoriteService) {
+	public RestaurantController(RestaurantRepository restaurantRepository, ReviewRepository reviewRepository,
+			FavoriteService favoriteService,RestaurantService restaurantService) {
 		this.restaurantRepository = restaurantRepository;
 		this.reviewRepository = reviewRepository;
 		this.favoriteService = favoriteService;
-
+		this.restaurantService = restaurantService;
 	}
 
 	@GetMapping
@@ -92,7 +95,6 @@ public class RestaurantController {
 
 		Restaurant restaurant = restaurantRepository.getReferenceById(id);
 		boolean isFavorite = false;
-
 		Page<Review> reviewPage;
 
 		if (userDetailsImpl != null && userDetailsImpl.getUser() != null) {
@@ -138,5 +140,30 @@ public class RestaurantController {
 
 			return "restaurants/notshow";
 		}
+	}
+    @GetMapping("/{restaurantId}/reviews/register")
+    public String showReviewForm(@PathVariable Integer restaurantId, Model model,
+                                 @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid restaurant Id:" + restaurantId));
+        model.addAttribute("restaurant", restaurant);
+
+        if (userDetailsImpl != null && userDetailsImpl.getUser() != null) {
+            User user = userDetailsImpl.getUser();
+            ReviewRegisterForm reviewRegisterForm = new ReviewRegisterForm();
+            reviewRegisterForm.setUserId(user.getId());
+            reviewRegisterForm.setRestaurantId(restaurantId);
+            model.addAttribute("reviewRegisterForm", reviewRegisterForm);
+        }
+
+        return "reviews/register"; // views/reviews/register.html というテンプレートが必要
+    }
+    
+	@PostMapping("/{id}/delete")
+	public String deleteRestaurant(@PathVariable Integer id, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+		// レストラン削除処理
+		restaurantService.deleteRestaurant(id);
+		// 削除後のリダイレクト先を指定
+		return "redirect:/restaurants";
 	}
 }
