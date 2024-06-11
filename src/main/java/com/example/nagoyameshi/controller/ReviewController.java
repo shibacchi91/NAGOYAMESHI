@@ -28,7 +28,7 @@ import com.example.nagoyameshi.service.ReviewService;
 
 //レビューコンテンツ
 @Controller
-@RequestMapping("/restaurants/{restaurantId}/review")
+@RequestMapping("/restaurants/{restaurantId}/reviews")
 public class ReviewController {
 	private final ReviewRepository reviewRepository;
 	private final ReviewService reviewService;
@@ -42,12 +42,12 @@ public class ReviewController {
 	}
 
 	@GetMapping
-	//public String index(Model model,@PageableDefault(page = 0, size = 6, sort = "id", direction = Direction.ASC)Pageable pageable) {
-	public String index(Model model,
+	public String index(@PathVariable(name = "restaurantId") Integer restaurantId, Model model,
 			@PageableDefault(page = 0, size = 6, sort = "id", direction = Direction.ASC) Pageable pageable) {
+		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
+		Page<Review> reviewPage = reviewRepository.findByRestaurantOrderByCreatedAtDesc(restaurant, pageable);
 
-		Page<Review> reviewPage;
-		reviewPage = reviewRepository.findAll(pageable);
+		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewPage", reviewPage);
 		return "restaurants/show";
 	}
@@ -55,71 +55,82 @@ public class ReviewController {
 	@GetMapping("/table")
 	public String table(@PathVariable(name = "restaurantId") Integer restaurantId, Model model,
 			@PageableDefault(page = 0, size = 10, sort = "id", direction = Direction.ASC) Pageable pageable) {
-		Page<Review> reviewPage;
-		reviewPage = reviewRepository.findAll(pageable);
-		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
-		model.addAttribute("restaurant", restaurant);
-		model.addAttribute("reviewPage", reviewPage);
-		return "review/table";
+	    Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
+	    Page<Review> reviewPage = reviewRepository.findByRestaurantOrderByCreatedAtDesc(restaurant, pageable);
+
+	    model.addAttribute("restaurant", restaurant);
+	    model.addAttribute("reviewPage", reviewPage);
+	    return "review/table";
 	}
 
-	@GetMapping("/register")
-	public String register(@PathVariable(name = "restaurantId") Integer restaurantId, Model model) {
-		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
-		model.addAttribute("restaurant", restaurant);
-		model.addAttribute("reviewRegisterForm", new ReviewRegisterForm());
-		return "review/register";
-	}
+    @GetMapping("/add")
+    public String register(@PathVariable(name = "restaurantId") Integer restaurantId, Model model) {
+        Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
+
+        model.addAttribute("restaurant", restaurant);
+        model.addAttribute("reviewRegisterForm", new ReviewRegisterForm());
+        return "review/register";
+    }
+	
+	/*	@GetMapping("/register")
+		public String register(@PathVariable(name = "restaurantId") Integer restaurantId, Model model) {
+			Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
+	
+			model.addAttribute("restaurant", restaurant);
+			model.addAttribute("reviewRegisterForm", new ReviewRegisterForm());
+			return "review/register";
+		}*/
 
 	@PostMapping("/create")
 	public String create(@ModelAttribute @Validated ReviewRegisterForm reviewRegisterForm, BindingResult bindingResult,
-			RedirectAttributes redirectAttributes,
-			@AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+			RedirectAttributes redirectAttributes, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
 		if (bindingResult.hasErrors()) {
-			return "restaurants/show/review/register";
+			return "review/register";
 		}
+
 		User user = userDetailsImpl.getUser();
 		reviewRegisterForm.setUserId(user.getId());
 		reviewService.create(reviewRegisterForm);
 
 		redirectAttributes.addFlashAttribute("successMessage", "レビューを登録しました。");
-		return "redirect:/restaurants/{restaurantId}";
+		return "redirect:/restaurants/{restaurantId}/reviews";
 	}
 
 	@GetMapping("/{id}/edit")
-	public String edit(@PathVariable(name = "id") Integer id,
-			@AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
-			@PathVariable(name = "restaurantId") Integer restaurantId,
+	public String edit(@PathVariable(name = "id") Integer id, @PathVariable(name = "restaurantId") Integer restaurantId,
 			Model model) {
 		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
-		//User user = userDetailsImpl.getUser();
 		Review review = reviewRepository.getReferenceById(id);
+
 		ReviewEditForm reviewEditForm = new ReviewEditForm(review.getId(), restaurant.getId(), review.getRating(),
 				review.getReview());
+
 		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewEditForm", reviewEditForm);
 		return "review/edit";
 	}
 
-	@PostMapping("{id}/update")
+	@PostMapping("/{id}/update")
 	public String update(@ModelAttribute @Validated ReviewEditForm reviewEditForm, BindingResult bindingResult,
-			@PathVariable(name = "restaurantId") Integer restaurantId, Model model, RedirectAttributes redirectAttributes) {
+			@PathVariable(name = "restaurantId") Integer restaurantId, Model model,
+			RedirectAttributes redirectAttributes) {
 		if (bindingResult.hasErrors()) {
 			return "review/edit";
 		}
-		Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
-		model.addAttribute("restaurant", restaurant);
-		reviewService.update(reviewEditForm);
-		redirectAttributes.addFlashAttribute("successMessage", "レビューを編集しました。");
-		return "redirect:/restaurants/{restaurantId}";
 
+		reviewService.update(reviewEditForm);
+
+		redirectAttributes.addFlashAttribute("successMessage", "レビューを編集しました。");
+		return "redirect:/restaurants/{restaurantId}/reviews";
 	}
 
 	@PostMapping("/{id}/delete")
-	public String delete(@PathVariable(name = "id") Integer id, RedirectAttributes redirectAttributes) {
+	public String delete(@PathVariable(name = "id") Integer id,
+			@PathVariable(name = "restaurantId") Integer restaurantId,
+			RedirectAttributes redirectAttributes) {
 		reviewRepository.deleteById(id);
-		redirectAttributes.addFlashAttribute("successMessage", "レビューを削除しました。");
-		return "redirect:/restaurants/{restaurantId}";
-	}
 
+		redirectAttributes.addFlashAttribute("successMessage", "レビューを削除しました。");
+		return "redirect:/restaurants/{restaurantId}/reviews";
+	}
 }

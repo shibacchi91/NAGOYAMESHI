@@ -26,6 +26,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 		try {
 			User user = userRepository.findByEmail(email);
+			if (user == null) {
+				throw new UsernameNotFoundException("ユーザーが見つかりませんでした。");
+			}
 			String userRoleName = user.getRole().getMembership();
 			Collection<GrantedAuthority> authorities = new ArrayList<>();
 			authorities.add(new SimpleGrantedAuthority(userRoleName));
@@ -33,6 +36,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		} catch (Exception e) {
 			throw new UsernameNotFoundException("ユーザーが見つかりませんでした。");
 		}
+
 	}
 
 }

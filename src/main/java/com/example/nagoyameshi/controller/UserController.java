@@ -34,6 +34,12 @@ public class UserController {
 
 	@GetMapping
 	public String index(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, Model model) {
+		if (userDetailsImpl == null) {
+			System.out.println("userDetailsImplはnullです。");
+			// 何らかの処理を行う（例：エラーページにリダイレクトするなど）
+			return "error";
+		}
+
 		User user = userRepository.getReferenceById(userDetailsImpl.getUser().getId());
 
 		model.addAttribute("user", user);

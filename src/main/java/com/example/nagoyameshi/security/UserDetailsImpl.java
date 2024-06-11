@@ -4,20 +4,32 @@ import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import com.example.nagoyameshi.entity.User;
 
+
+@Component
 	public class UserDetailsImpl implements UserDetails {
-	     private final User user;
+	     private  User user;
 	     private final Collection<GrantedAuthority> authorities;
+	     
+	
+	     
 	     
 	     public UserDetailsImpl(User user, Collection<GrantedAuthority> authorities) {
 	         this.user = user;
 	         this.authorities = authorities;
+	         System.out.println("UserDetailsImplインスタンスが作成されました。");
 	     }
 	     
 	     public User getUser() {
 	         return user;
+	     }
+	     
+	     // ユーザー情報を更新するためのメソッド
+	     public void setUser(User user) {
+	         this.user = user;
 	     }
 	     
 	     // ハッシュ化済みのパスワードを返す
