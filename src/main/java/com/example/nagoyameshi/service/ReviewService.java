@@ -17,14 +17,13 @@ public class ReviewService {
 	private final ReviewRepository reviewRepository;
 	private final RestaurantRepository restaurantRepository;
 	private final UserRepository userRepository;
-	
 
 	public ReviewService(ReviewRepository reviewRepository, RestaurantRepository restaurantRepository,
 			UserRepository userRepository, RestaurantService restaurantService) {
 		this.reviewRepository = reviewRepository;
 		this.restaurantRepository = restaurantRepository;
 		this.userRepository = userRepository;
-	
+
 	}
 
 	@Transactional
@@ -47,5 +46,11 @@ public class ReviewService {
 		review.setReview(reviewEditForm.getReview());
 		reviewRepository.save(review);
 	}
+
+	/*	// URL生成メソッドを追加
+		public String generateRedirectUrl(ReviewRegisterForm form) {
+			Integer restaurantId = form.getRestaurantId();
+			return "http://localhost:8080/restaurants/" + restaurantId;
+		}*/
 
 }

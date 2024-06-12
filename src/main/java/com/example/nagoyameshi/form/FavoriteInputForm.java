@@ -6,7 +6,10 @@ import lombok.Data;
 @Data
 public class FavoriteInputForm {
 	@NotNull
-	private Integer houseId;
+	private Integer id;
+	
+	@NotNull
+	private Integer restaurantId;
 
 	@NotNull
 	private Integer userId;

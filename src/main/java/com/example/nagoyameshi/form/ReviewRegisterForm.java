@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewRegisterForm {
+
+	
 	private Integer restaurantId;
 
 	private Integer userId;

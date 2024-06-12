@@ -60,31 +60,32 @@ import com.example.nagoyameshi.service.ReservationService;
 	
 		@GetMapping("/restaurants/{id}/reservations/input")
 		public String input(@PathVariable(name = "id") Integer id,
-				@ModelAttribute @Validated ReservationInputForm reservationInputForm,
-				BindingResult bindingResult,
-				RedirectAttributes redirectAttributes,
-				Model model) {
-			Restaurant restaurant = restaurantRepository.getReferenceById(id);
-			Integer numberOfPeople = reservationInputForm.getNumberOfPeople();
-			Integer capacity = restaurant.getCapacity();
-	
-			if (numberOfPeople != null) {
-				if (!reservationService.isWithinCapacity(numberOfPeople, capacity)) {
-					FieldError fieldError = new FieldError(bindingResult.getObjectName(), "numberOfPeople",
-							"利用人数が定員を超えています。");
-					bindingResult.addError(fieldError);
-				}
-			}
-	
-			if (bindingResult.hasErrors()) {
-				model.addAttribute("restaurant", restaurant);
-				model.addAttribute("errorMessage", "予約内容に不備があります。");
-				return "restaurants/show";
-			}
-	
-			redirectAttributes.addFlashAttribute("reservationInputForm", reservationInputForm);
-	
-			return "redirect:/restaurants/{id}/reservations/confirm";
+		                    @ModelAttribute @Validated ReservationInputForm reservationInputForm,
+		                    BindingResult bindingResult,
+		                    RedirectAttributes redirectAttributes,
+		                    Model model) {
+		    Restaurant restaurant = restaurantRepository.getReferenceById(id);
+		    Integer numberOfPeople = reservationInputForm.getNumberOfPeople();
+		    Integer capacity = restaurant.getCapacity();
+
+		    if (numberOfPeople != null) {
+		        if (!reservationService.isWithinCapacity(numberOfPeople, capacity)) {
+		            FieldError fieldError = new FieldError(bindingResult.getObjectName(), "numberOfPeople",
+		                    "利用人数が定員を超えています。");
+		            bindingResult.addError(fieldError);
+		        }
+		    }
+
+		    if (bindingResult.hasErrors()) {
+		        model.addAttribute("restaurant", restaurant);
+		        model.addAttribute("reservationInputForm", reservationInputForm); // ここを追加
+		        model.addAttribute("errorMessage", "予約内容に不備があります。");
+		        return "restaurants/show"; // show.html に遷移
+		    }
+
+		    redirectAttributes.addFlashAttribute("reservationInputForm", reservationInputForm);
+
+		    return "redirect:/restaurants/{id}/reservations/confirm";
 		}
 	
 		@GetMapping("/restaurants/{id}/reservations/confirm")
@@ -95,7 +96,7 @@ import com.example.nagoyameshi.service.ReservationService;
 			Restaurant restaurant = restaurantRepository.getReferenceById(id);
 			User user = userDetailsImpl.getUser();
 	
-			//来店日を取得する
+			//来店日と来店時間を取得する
 			LocalDate checkinDate = reservationInputForm.getCheckinDate();
 			LocalTime checkinTime = reservationInputForm.getCheckinTime();
 			// 利用料金を計算する
@@ -112,12 +113,12 @@ import com.example.nagoyameshi.service.ReservationService;
 			return "reservations/confirm";
 		}
 	
-		@PostMapping("/restaurants/{id}/reservations/create")
-		public String create(@ModelAttribute ReservationRegisterForm reservationRegisterForm) {
-			reservationService.create(reservationRegisterForm);
-	
-			return "redirect:/reservations?reserved";
-		}
+		/*		@PostMapping("/restaurants/{id}/reservations/create")
+				public String create(@ModelAttribute ReservationRegisterForm reservationRegisterForm) {
+					reservationService.create(reservationRegisterForm);
+			
+					return "redirect:/reservations?reserved";
+				}*/
 	
 		@GetMapping("/restaurants/{id}/reservations")
 		public String listReservationsForRestaurant(@PathVariable("id") Integer restaurantId, Model model) {

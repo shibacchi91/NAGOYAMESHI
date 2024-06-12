@@ -33,7 +33,7 @@ public class RestaurantController {
 	private final RestaurantService restaurantService;
 
 	public RestaurantController(RestaurantRepository restaurantRepository, ReviewRepository reviewRepository,
-			FavoriteService favoriteService,RestaurantService restaurantService) {
+			FavoriteService favoriteService, RestaurantService restaurantService) {
 		this.restaurantRepository = restaurantRepository;
 		this.reviewRepository = reviewRepository;
 		this.favoriteService = favoriteService;
@@ -97,35 +97,28 @@ public class RestaurantController {
 		boolean isFavorite = false;
 		Page<Review> reviewPage;
 
+		// ユーザーがログインしているかを確認
 		if (userDetailsImpl != null && userDetailsImpl.getUser() != null) {
 			isFavorite = favoriteService.isFavorite(restaurant, userDetailsImpl.getUser());
 			reviewPage = reviewRepository.findByRestaurantOrderByCreatedAtDesc(restaurant, pageable);
 
-			// レビューが存在しない場合の処理
 			if (reviewPage.getTotalElements() == 0) {
 				model.addAttribute("noReviewsMessage", "まだレビューがありません");
 			} else {
-				// レビューが存在する場合の処理
 				model.addAttribute("reviewPage", reviewPage);
 			}
 
 			User user = userDetailsImpl.getUser();
-
-			Review review = reviewRepository.getReferenceById(id);
 			ReservationInputForm reservationInputForm = new ReservationInputForm();
+			Review review = reviewRepository.getReferenceById(id);
 			ReviewRegisterForm reviewRegisterForm = new ReviewRegisterForm(restaurant.getId(), user.getId(),
-					review.getRating(),
-					review.getReview());
+					review.getRating(), review.getReview());
 
 			model.addAttribute("reservationInputForm", reservationInputForm);
 			model.addAttribute("review", review);
 			model.addAttribute("user", user);
 			model.addAttribute("reviewRegisterForm", reviewRegisterForm);
 			model.addAttribute("isFavorite", isFavorite);
-			model.addAttribute("restaurant", restaurant);
-
-			return "restaurants/show";
-
 		} else {
 			// 未ログインの場合でもレビューの表示を行う
 			reviewPage = reviewRepository.findByRestaurantOrderByCreatedAtDesc(restaurant, pageable);
@@ -134,31 +127,34 @@ public class RestaurantController {
 			} else {
 				model.addAttribute("reviewPage", reviewPage);
 			}
-
-			// ビューに渡すデータの設定
-			model.addAttribute("restaurant", restaurant);
-
-			return "restaurants/notshow";
 		}
+
+		// ビューに渡すデータの設定
+		model.addAttribute("restaurant", restaurant);
+
+		// ログイン状態に応じて適切なテンプレートを返す
+		return userDetailsImpl != null && userDetailsImpl.getUser() != null ? "restaurants/show"
+				: "restaurants/notshow";
 	}
-    @GetMapping("/{restaurantId}/reviews/register")
-    public String showReviewForm(@PathVariable Integer restaurantId, Model model,
-                                 @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid restaurant Id:" + restaurantId));
-        model.addAttribute("restaurant", restaurant);
 
-        if (userDetailsImpl != null && userDetailsImpl.getUser() != null) {
-            User user = userDetailsImpl.getUser();
-            ReviewRegisterForm reviewRegisterForm = new ReviewRegisterForm();
-            reviewRegisterForm.setUserId(user.getId());
-            reviewRegisterForm.setRestaurantId(restaurantId);
-            model.addAttribute("reviewRegisterForm", reviewRegisterForm);
-        }
+	@GetMapping("/{restaurantId}/reviews/register")
+	public String showReviewForm(@PathVariable Integer restaurantId, Model model,
+			@AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+		Restaurant restaurant = restaurantRepository.findById(restaurantId)
+				.orElseThrow(() -> new IllegalArgumentException("Invalid restaurant Id:" + restaurantId));
+		model.addAttribute("restaurant", restaurant);
 
-        return "reviews/register"; // views/reviews/register.html というテンプレートが必要
-    }
-    
+		if (userDetailsImpl != null && userDetailsImpl.getUser() != null) {
+			User user = userDetailsImpl.getUser();
+			ReviewRegisterForm reviewRegisterForm = new ReviewRegisterForm();
+			reviewRegisterForm.setUserId(user.getId());
+			reviewRegisterForm.setRestaurantId(restaurantId);
+			model.addAttribute("reviewRegisterForm", reviewRegisterForm);
+		}
+
+		return "reviews/register"; // views/reviews/register.html というテンプレートが必要
+	}
+
 	@PostMapping("/{id}/delete")
 	public String deleteRestaurant(@PathVariable Integer id, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
 		// レストラン削除処理

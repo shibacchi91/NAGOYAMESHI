@@ -8,6 +8,9 @@ import lombok.Data;
 @Data
 public class FavoriteRegisterForm {
 	@NotNull
+	private Integer id;
+	
+	@NotNull
 	private Integer restaurantId;
 
 	@NotNull

@@ -60,7 +60,7 @@ public class ReviewController {
 
 	    model.addAttribute("restaurant", restaurant);
 	    model.addAttribute("reviewPage", reviewPage);
-	    return "review/table";
+	    return "reviews/table";
 	}
 
     @GetMapping("/add")
@@ -69,7 +69,7 @@ public class ReviewController {
 
         model.addAttribute("restaurant", restaurant);
         model.addAttribute("reviewRegisterForm", new ReviewRegisterForm());
-        return "review/register";
+        return "reviews/register";
     }
 	
 	/*	@GetMapping("/register")
@@ -85,7 +85,7 @@ public class ReviewController {
 	public String create(@ModelAttribute @Validated ReviewRegisterForm reviewRegisterForm, BindingResult bindingResult,
 			RedirectAttributes redirectAttributes, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
 		if (bindingResult.hasErrors()) {
-			return "review/register";
+			return "reviews/register";
 		}
 
 		User user = userDetailsImpl.getUser();
@@ -93,7 +93,7 @@ public class ReviewController {
 		reviewService.create(reviewRegisterForm);
 
 		redirectAttributes.addFlashAttribute("successMessage", "レビューを登録しました。");
-		return "redirect:/restaurants/{restaurantId}/reviews";
+		return "redirect:/restaurants/{restaurantId}";
 	}
 
 	@GetMapping("/{id}/edit")
@@ -107,7 +107,7 @@ public class ReviewController {
 
 		model.addAttribute("restaurant", restaurant);
 		model.addAttribute("reviewEditForm", reviewEditForm);
-		return "review/edit";
+		return "reviews/edit";
 	}
 
 	@PostMapping("/{id}/update")
@@ -115,13 +115,13 @@ public class ReviewController {
 			@PathVariable(name = "restaurantId") Integer restaurantId, Model model,
 			RedirectAttributes redirectAttributes) {
 		if (bindingResult.hasErrors()) {
-			return "review/edit";
+			return "reviews/edit";
 		}
 
 		reviewService.update(reviewEditForm);
 
 		redirectAttributes.addFlashAttribute("successMessage", "レビューを編集しました。");
-		return "redirect:/restaurants/{restaurantId}/reviews";
+		return "redirect:/restaurants/{restaurantId}";
 	}
 
 	@PostMapping("/{id}/delete")
@@ -131,6 +131,6 @@ public class ReviewController {
 		reviewRepository.deleteById(id);
 
 		redirectAttributes.addFlashAttribute("successMessage", "レビューを削除しました。");
-		return "redirect:/restaurants/{restaurantId}/reviews";
+		return "redirect:/restaurants/{restaurantId}";
 	}
 }
