@@ -45,6 +45,7 @@ public class RestaurantController {
 			@RequestParam(name = "area", required = false) String area,
 			@RequestParam(name = "price", required = false) Integer price,
 			@RequestParam(name = "order", required = false) String order,
+			@RequestParam(name = "category", required = false) String category,
 			@PageableDefault(page = 0, size = 10, sort = "id", direction = Direction.ASC) Pageable pageable,
 			Model model) {
 		Page<Restaurant> restaurantPage;
@@ -70,6 +71,12 @@ public class RestaurantController {
 			} else {
 				restaurantPage = restaurantRepository.findByPriceLessThanEqualOrderByCreatedAtDesc(price, pageable);
 			}
+	    } else if (category != null && !category.isEmpty()) {
+	        if (order != null && order.equals("priceAsc")) {
+	            restaurantPage = restaurantRepository.findByCategoryOrderByPriceAsc(category, pageable);
+	        } else {
+	            restaurantPage = restaurantRepository.findByCategoryOrderByCreatedAtDesc(category, pageable);
+	        }
 		} else {
 			if (order != null && order.equals("priceAsc")) {
 				restaurantPage = restaurantRepository.findAllByOrderByPriceAsc(pageable);
@@ -83,6 +90,7 @@ public class RestaurantController {
 		model.addAttribute("area", area);
 		model.addAttribute("price", price);
 		model.addAttribute("order", order);
+		model.addAttribute("category", category);
 
 		return "restaurants/index";
 
@@ -162,4 +170,15 @@ public class RestaurantController {
 		// 削除後のリダイレクト先を指定
 		return "redirect:/restaurants";
 	}
+	
+    // カテゴリに基づく店舗の検索
+    @GetMapping("/category")
+    public String getRestaurantsByCategory(@RequestParam(name = "category") String category,
+                                           @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Direction.DESC) Pageable pageable,
+                                           Model model) {
+        Page<Restaurant> restaurantPage = restaurantService.findRestaurantsByCategory(category, pageable);
+        model.addAttribute("restaurantPage", restaurantPage);
+        model.addAttribute("category", category);
+        return "restaurants/index"; // 適切なビュー名を指定する
+    }
 }

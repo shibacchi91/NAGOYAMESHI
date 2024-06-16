@@ -83,8 +83,8 @@ public class AdminRestaurantController {
 	public String edit(@PathVariable(name = "id") Integer id, Model model) {
 		Restaurant restaurant = restaurantRepository.getReferenceById(id);
 		String imageName = restaurant.getImageName();
-		RestaurantEditForm restaurantEditForm = new RestaurantEditForm(restaurant.getId(), restaurant.getName(), null,
-				restaurant.getDescription(), restaurant.getPrice(), restaurant.getCapacity(), restaurant.getPostalCode(),
+		RestaurantEditForm restaurantEditForm = new RestaurantEditForm(restaurant.getId(), restaurant.getName(), restaurant.getCategory(),
+				null, restaurant.getDescription(), restaurant.getPrice(), restaurant.getCapacity(), restaurant.getPostalCode(),
 				restaurant.getAddress(), restaurant.getPhoneNumber());
 
 		model.addAttribute("imageName", imageName);

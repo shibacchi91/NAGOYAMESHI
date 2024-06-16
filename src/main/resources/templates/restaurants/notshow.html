@@ -35,8 +35,8 @@
 						</div>
 
 						<div class="mb-4">
-							<img th:if="${restaurant.getImageName()}" th:src="@{/storage/__${restaurant.getImageName()}__}"
-								class="w-100" alt="店舗画像">
+							<img th:if="${restaurant.getImageName()}"
+								th:src="@{/storage/__${restaurant.getImageName()}__}" class="w-100" alt="店舗画像">
 							<img th:unless="${restaurant.getImageName()}" th:src="@{/images/noImage.png}" class="w-100"
 								alt="NO IMAGE">
 						</div>
@@ -53,7 +53,16 @@
 											<span th:text="${restaurant.getName()}"></span>
 										</div>
 									</div>
+									<div class="row pb-2 mb-2 border-bottom">
+										<div class="col-4">
+											<span class="fw-bold">カテゴリ</span>
+										</div>
 
+										<div class="col">
+											<span class="nagoyameshi-pre-wrap"
+												th:text="${restaurant.getCategory()}"></span>
+										</div>
+									</div>
 									<div class="row pb-2 mb-2 border-bottom">
 										<div class="col-4">
 											<span class="fw-bold">説明</span>
@@ -121,8 +130,7 @@
 									<div class="card">
 										<div class="card-body">
 											<p class="card-text">予約するには<a th:href="@{/login}">ログイン</a>が必要です。</p>
-											<button type="submit"
-												class="btn text-white shadow-sm w-100 nagoyameshi-btn"
+											<button type="submit" class="btn text-white shadow-sm w-100 nagoyameshi-btn"
 												disabled>予約する</button>
 										</div>
 									</div>
@@ -188,7 +196,7 @@
 
 													<h3 class="card-title mb-3" th:text="${review.getUser().getName()}">
 													</h3>
-													
+
 
 
 													<p class="card-text">
@@ -218,7 +226,8 @@
 									</div>
 									<div class="text-center"
 										th:if="${reviewPage != null && !#lists.isEmpty(reviewPage)}">
-										<a th:href="@{/restaurants/__${restaurant.getId()}__/review/table}">すべてのレビューを見る</a>
+										<a
+											th:href="@{/restaurants/__${restaurant.getId()}__/review/table}">すべてのレビューを見る</a>
 									</div>
 								</div>
 

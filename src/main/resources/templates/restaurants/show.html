@@ -36,17 +36,17 @@
 								<input type="hidden" name="userId" th:value="${#authentication.principal.user.id}">
 								<button type="submit">&#9829; お気に入り解除</button>
 							</form>
+
+
+
+							<!-- Thymeleafテンプレート内のお気に入り追加フォーム -->
+							<form th:unless="${isFavorite}" method="post"
+								th:action="@{/favorites/{restaurantId}/create(restaurantId=${restaurant.id})}">
+								<input type="hidden" name="restaurantId" th:value="${restaurant.id}">
+								<input type="hidden" name="userId" th:value="${#authentication.principal.user.id}">
+								<button type="submit">&#9825; お気に入り追加</button>
+							</form>
 						</div>
-
-
-						<!-- Thymeleafテンプレート内のお気に入り追加フォーム -->
-						<form th:unless="${isFavorite}" method="post"
-							th:action="@{/favorites/{restaurantId}/create(restaurantId=${restaurant.id})}">
-							<input type="hidden" name="restaurantId" th:value="${restaurant.id}">
-							<input type="hidden" name="userId" th:value="${#authentication.principal.user.id}">
-							<button type="submit">&#9825; お気に入り追加</button>
-						</form>
-
 
 
 						<h1 class="mb-4 text-center" th:text="${restaurant.getName()}"></h1>
@@ -75,6 +75,16 @@
 										</div>
 									</div>
 
+									<div class="row pb-2 mb-2 border-bottom">
+										<div class="col-4">
+											<span class="fw-bold">カテゴリ</span>
+										</div>
+
+										<div class="col">
+											<span class="nagoyameshi-pre-wrap"
+												th:text="${restaurant.getCategory()}"></span>
+										</div>
+									</div>
 									<div class="row pb-2 mb-2 border-bottom">
 										<div class="col-4">
 											<span class="fw-bold">説明</span>
@@ -248,9 +258,9 @@
 																			</div>
 																			<div class="modal-footer">
 																				<form method="post"
-																					th:action="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/}">
+																					th:action="@{/restaurants/__${restaurant.getId()}__/reviews/__${review.getId()}__/delete}">
 																					<button type="submit"
-																						class="btn naoyameshi-btn-danger text-white shadow-sm">削除</button>
+																						class="btn nagoyameshi-btn-danger text-white shadow-sm">削除</button>
 																				</form>
 																			</div>
 																		</div>

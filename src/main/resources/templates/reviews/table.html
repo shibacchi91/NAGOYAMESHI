@@ -86,13 +86,13 @@
 								<span th:if="${i == reviewPage.getNumber()}"
 									class="page-link active nagoyameshi-active" th:text="${i + 1}"></span>
 								<a th:unless="${i == reviewPage.getNumber()}"
-									th:href="@{/restaurants/__${restaurant.getId()}__/review/table(page = ${i})}"
+									th:href="@{/restaurants/__${restaurant.getId()}__/reviews/table(page = ${i})}"
 									class="page-link nagoyameshi-page-link" th:text="${i + 1}"></a>
 							</li>
 							<li class="page-item">
 								<span th:if="${reviewPage.isLast()}" class="page-link disabled">次</span>
 								<a th:unless="${reviewPage.isLast()}"
-									th:href="@{/restaurants/__${restaurant.getId()}__/review/table(page = ${reviewPage.getNumber() + 1})}"
+									th:href="@{/restaurants/__${restaurant.getId()}__/reviews/table(page = ${reviewPage.getNumber() + 1})}"
 									class="page-link nagoyameshi-page-link">次</a>
 							</li>
 						</ul>

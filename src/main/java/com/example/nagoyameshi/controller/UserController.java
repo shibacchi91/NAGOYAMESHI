@@ -2,7 +2,11 @@ package com.example.nagoyameshi.controller;
 
 import java.util.Arrays;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,6 +22,7 @@ import com.example.nagoyameshi.entity.User;
 import com.example.nagoyameshi.form.UserEditForm;
 import com.example.nagoyameshi.repository.UserRepository;
 import com.example.nagoyameshi.security.UserDetailsImpl;
+import com.example.nagoyameshi.security.UserDetailsServiceImpl;
 import com.example.nagoyameshi.service.UserService;
 
 @Controller
@@ -26,10 +31,13 @@ import com.example.nagoyameshi.service.UserService;
 public class UserController {
 	private final UserRepository userRepository;
 	private final UserService userService;
+	private final UserDetailsServiceImpl userDetailsServiceImpl;
 
-	public UserController(UserRepository userRepository, UserService userService) {
+	 @Autowired
+	public UserController(UserRepository userRepository, UserService userService, UserDetailsServiceImpl userDetailsServiceImpl) {
 		this.userRepository = userRepository;
 		this.userService = userService;
+		this.userDetailsServiceImpl = userDetailsServiceImpl;
 	}
 
 	@GetMapping
@@ -60,7 +68,7 @@ public class UserController {
 
 	@PostMapping("/update")
 	public String update(@ModelAttribute @Validated UserEditForm userEditForm, BindingResult bindingResult,
-			RedirectAttributes redirectAttributes) {
+			RedirectAttributes redirectAttributes,@AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
 
 		// 会員プランが「無料会員」の場合、membershipを「一般」に設定する
 		if ("無料会員".equals(userEditForm.getMembership())) {
@@ -80,7 +88,19 @@ public class UserController {
 			return "user/edit";
 		}
 
+		
+		
 		userService.update(userEditForm);
+        UserDetails updatedUserDetails = userDetailsServiceImpl.loadUserByUsername(userDetailsImpl.getUsername());
+
+        // 新しい認証トークンを作成
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                updatedUserDetails, updatedUserDetails.getPassword(), updatedUserDetails.getAuthorities());
+
+        // セキュリティコンテキストに新しい認証トークンを設定
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+		
 		redirectAttributes.addFlashAttribute("successMessage", "会員情報を編集しました。");
 
 		return "redirect:/user";

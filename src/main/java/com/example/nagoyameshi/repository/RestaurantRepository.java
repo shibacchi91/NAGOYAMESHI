@@ -11,6 +11,8 @@ import com.example.nagoyameshi.entity.Restaurant;
 public interface RestaurantRepository extends JpaRepository<Restaurant, Integer> {
 	public Page<Restaurant> findByNameLike(String keyword, Pageable pageable);
 	
+	
+	//キーワード検索
 	public Page<Restaurant> findByNameLikeOrAddressLikeOrderByCreatedAtDesc(String nameKeyword, String addressKeyword, Pageable pageable);  
     public Page<Restaurant> findByNameLikeOrAddressLikeOrderByPriceAsc(String nameKeyword, String addressKeyword, Pageable pageable);  
     public Page<Restaurant> findByAddressLikeOrderByCreatedAtDesc(String area, Pageable pageable);
@@ -21,4 +23,9 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
     public Page<Restaurant> findAllByOrderByPriceAsc(Pageable pageable); 
     
     public List<Restaurant> findTop10ByOrderByCreatedAtDesc();
+    
+    // カテゴリで検索するメソッド
+    public Page<Restaurant> findByCategoryOrderByCreatedAtDesc(String category, Pageable pageable);
+    public Page<Restaurant> findByCategoryOrderByPriceAsc(String category, Pageable pageable);
+
 }

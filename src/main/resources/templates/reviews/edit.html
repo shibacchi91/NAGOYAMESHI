@@ -27,7 +27,7 @@
 						</nav>
 						<h1 class="mb-4 text-center"><span th:text="@{__${restaurant.getName()}__}"></span>のレビュー編集</h1>
 						<form method="post"
-							th:action="@{/restaurants/__${restaurant.getId()}__/review/__${reviewEditForm.getId()}__/update}"
+							th:action="@{/restaurants/__${restaurant.getId()}__/reviews/__${reviewEditForm.getId()}__/update}"
 							th:object="${reviewEditForm}" enctype="multipart/form-data">
 							<div class="form-group row mb-3">
 								<div class="col-md-4">

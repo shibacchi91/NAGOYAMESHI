@@ -46,6 +46,17 @@
 
 							<div class="form-group row mb-3">
 								<div class="col-md-4">
+									<label for="category" class="col-form-label text-md-left fw-bold">カテゴリ</label>
+								</div>
+								<div class="col-md-8">
+									<div th:if="${#fields.hasErrors('category')}" class="text-danger small mb-2"
+										th:errors="*{category}"></div>
+									<input type="text" class="form-control" th:field="*{category}">
+								</div>
+							</div>
+
+							<div class="form-group row mb-3">
+								<div class="col-md-4">
 									<label for="imageFile" class="col-form-label text-md-left fw-bold">店舗画像</label>
 								</div>
 								<div class="col-md-8">
@@ -129,8 +140,7 @@
 
 
 							<div class="form-group d-flex justify-content-center my-4">
-								<button type="submit"
-									class="btn text-white shadow-sm w-50 nagoyameshi-btn">更新</button>
+								<button type="submit" class="btn text-white shadow-sm w-50 nagoyameshi-btn">更新</button>
 							</div>
 						</form>
 					</div>

@@ -20,7 +20,7 @@ import com.example.nagoyameshi.entity.User;
 	     public UserDetailsImpl(User user, Collection<GrantedAuthority> authorities) {
 	         this.user = user;
 	         this.authorities = authorities;
-	         System.out.println("UserDetailsImplインスタンスが作成されました。");
+				/* System.out.println("UserDetailsImplインスタンスが作成されました。");*/
 	     }
 	     
 	     public User getUser() {

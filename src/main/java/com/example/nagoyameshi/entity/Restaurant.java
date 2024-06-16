@@ -24,6 +24,9 @@ public class Restaurant {
      @Column(name = "name")
      private String name;
  
+     @Column(name = "category")
+     private String category;
+     
      @Column(name = "image_name")
      private String imageName;
  
@@ -39,7 +42,7 @@ public class Restaurant {
      @Column(name = "postal_code")
      private String postalCode;
  
-     @Column(name = "address")
+      @Column(name = "address")
      private String address;
  
      @Column(name = "phone_number")
@@ -51,4 +54,9 @@ public class Restaurant {
      @Column(name = "updated_at", insertable = false, updatable = false)
      private Timestamp updatedAt;
 	
+     // getCategory() メソッドの定義
+     public String getCategory() {
+         return this.category;
+     }
+     
 }
