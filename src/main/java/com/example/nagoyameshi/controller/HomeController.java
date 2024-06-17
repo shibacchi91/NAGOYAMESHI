@@ -22,6 +22,8 @@ public class HomeController {
         List<Restaurant> newRestaurants = restaurantRepository.findTop10ByOrderByCreatedAtDesc();
         model.addAttribute("newRestaurants", newRestaurants);        
        
+        
+        
        return "index";
    }
 }

@@ -52,31 +52,32 @@ public class RestaurantController {
 
 		if (keyword != null && !keyword.isEmpty()) {
 			if (order != null && order.equals("priceAsc")) {
-				restaurantPage = restaurantRepository.findByNameLikeOrAddressLikeOrderByPriceAsc("%" + keyword + "%",
-						"%" + keyword + "%", pageable);
-			} else {
-				restaurantPage = restaurantRepository.findByNameLikeOrAddressLikeOrderByCreatedAtDesc(
+				restaurantPage = restaurantRepository.findByNameLikeOrAddressLikeOrCategoryLikeOrderByPriceAsc(
 						"%" + keyword + "%",
-						"%" + keyword + "%", pageable);
-			}
-		} else if (area != null && !area.isEmpty()) {
-			if (order != null && order.equals("priceAsc")) {
-				restaurantPage = restaurantRepository.findByAddressLikeOrderByPriceAsc("%" + area + "%", pageable);
+						"%" + keyword + "%", "%" + keyword + "%", pageable);
 			} else {
-				restaurantPage = restaurantRepository.findByAddressLikeOrderByCreatedAtDesc("%" + area + "%", pageable);
+				restaurantPage = restaurantRepository.findByNameLikeOrAddressLikeOrCategoryLikeOrderByCreatedAtDesc(
+						"%" + keyword + "%",
+						"%" + keyword + "%", "%" + keyword + "%", pageable);
 			}
+			/*		} else if (area != null && !area.isEmpty()) {
+						if (order != null && order.equals("priceAsc")) {
+							restaurantPage = restaurantRepository.findByAddressLikeOrderByPriceAsc("%" + area + "%", pageable);
+						} else {
+							restaurantPage = restaurantRepository.findByAddressLikeOrderByCreatedAtDesc("%" + area + "%", pageable);
+						}*/
 		} else if (price != null) {
 			if (order != null && order.equals("priceAsc")) {
 				restaurantPage = restaurantRepository.findByPriceLessThanEqualOrderByPriceAsc(price, pageable);
 			} else {
 				restaurantPage = restaurantRepository.findByPriceLessThanEqualOrderByCreatedAtDesc(price, pageable);
 			}
-	    } else if (category != null && !category.isEmpty()) {
-	        if (order != null && order.equals("priceAsc")) {
-	            restaurantPage = restaurantRepository.findByCategoryOrderByPriceAsc(category, pageable);
-	        } else {
-	            restaurantPage = restaurantRepository.findByCategoryOrderByCreatedAtDesc(category, pageable);
-	        }
+			/*			 } else if (category != null && !category.isEmpty()) {
+						if (order != null && order.equals("priceAsc")) {
+						    restaurantPage = restaurantRepository.findByCategoryOrderByPriceAsc(category, pageable);
+						} else {
+						    restaurantPage = restaurantRepository.findByCategoryOrderByCreatedAtDesc(category, pageable);
+						}*/
 		} else {
 			if (order != null && order.equals("priceAsc")) {
 				restaurantPage = restaurantRepository.findAllByOrderByPriceAsc(pageable);
@@ -170,15 +171,15 @@ public class RestaurantController {
 		// 削除後のリダイレクト先を指定
 		return "redirect:/restaurants";
 	}
-	
-    // カテゴリに基づく店舗の検索
-    @GetMapping("/category")
-    public String getRestaurantsByCategory(@RequestParam(name = "category") String category,
-                                           @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Direction.DESC) Pageable pageable,
-                                           Model model) {
-        Page<Restaurant> restaurantPage = restaurantService.findRestaurantsByCategory(category, pageable);
-        model.addAttribute("restaurantPage", restaurantPage);
-        model.addAttribute("category", category);
-        return "restaurants/index"; // 適切なビュー名を指定する
-    }
+
+	/*   // カテゴリに基づく店舗の検索
+	@GetMapping("/category")
+	public String getRestaurantsByCategory(@RequestParam(name = "category") String category,
+	                                       @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Direction.DESC) Pageable pageable,
+	                                       Model model) {
+	    Page<Restaurant> restaurantPage = restaurantService.findRestaurantsByCategory(category, pageable);
+	    model.addAttribute("restaurantPage", restaurantPage);
+	    model.addAttribute("category", category);
+	    return "restaurants/index"; // 適切なビュー名を指定する
+	}*/
 }

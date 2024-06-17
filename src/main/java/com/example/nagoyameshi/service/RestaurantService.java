@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,19 +28,17 @@ public class RestaurantService {
 		this.favoriteRepository = favoriteRepository;
 	}
 
-	// カテゴリに基づくページングされた店舗の検索
-	public Page<Restaurant> findRestaurantsByCategory(String category, Pageable pageable) {
-		return restaurantRepository.findByCategoryOrderByCreatedAtDesc(category, pageable);
-	}
+	/*    // カテゴリリストを取得するメソッドを追加
+	@Transactional(readOnly = true)
+	public List<String> getAllCategories() {
+	    return restaurantRepository.findAllCategories();
+	}*/
 
-	// カテゴリの更新
-	@Transactional
-	public void updateCategory(Integer restaurantId, String newCategory) {
-		Restaurant restaurant = restaurantRepository.findById(restaurantId)
-				.orElseThrow(() -> new IllegalArgumentException("Invalid restaurant Id:" + restaurantId));
-		restaurant.setCategory(newCategory);
-		restaurantRepository.save(restaurant);
-	}
+    // 新着レストランを取得するメソッドを追加
+    @Transactional(readOnly = true)
+    public List<Restaurant> getNewRestaurants() {
+        return restaurantRepository.findTop10ByOrderByCreatedAtDesc();
+    }
 
 	@Transactional
 	public void create(RestaurantRegisterForm restaurantRegisterForm) {

@@ -57,8 +57,12 @@
 											th:if="${reservation != null && reservation.checkinDate != null && reservation.checkinDate.isAfter(T(java.time.LocalDate).now())}">
 											<form th:action="@{/reservations/{id}/cancel(id=${reservation.getId()})}"
 												method="post">
-												<button type="submit"
-													class="btn text-white shadow-sm w-100 nagoyameshi-btn">キャンセル</button>
+												<button type="button"
+													class="btn text-white shadow-sm w-100 nagoyameshi-btn"
+													data-bs-toggle="modal"
+													th:data-bs-target="'#cancelReservationModal' + ${reservation.id}">
+													キャンセル
+												</button>
 											</form>
 										</div>
 									</td>
@@ -74,14 +78,13 @@
 									<div class="modal-header">
 										<h5 class="modal-title"
 											th:id="'cancelReservationModalLabel' + ${reservation.id}">
-											<span th:text="${'予約ID: ' + reservation.id + ' のキャンセル確認'}"></span>
+											<span
+												th:text="${'予約店舗: ' + reservation.restaurant.name + ' の予約をキャンセルしますか？'}"></span>
 										</h5>
 										<button type="button" class="btn-close" data-bs-dismiss="modal"
 											aria-label="閉じる"></button>
 									</div>
-									<div class="modal-body">
-										<p>本当に予約をキャンセルしますか？</p>
-									</div>
+
 									<div class="modal-footer">
 										<form th:action="@{/reservations/{id}/cancel(id=${reservation.id})}"
 											method="post">

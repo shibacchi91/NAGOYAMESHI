@@ -31,55 +31,45 @@
 				<form method="get" th:action="@{/restaurants}" class="mb-5 nagoyameshi-search-form">
 					<div class="input-group">
 						<input type="text" class="form-control" name="keyword" th:value="${keyword}"
-							placeholder="店舗名・目的地">
+							placeholder="店舗名・目的地・カテゴリ">
 						<button type="submit" class="btn text-white shadow-sm nagoyameshi-btn">検索</button>
 					</div>
 				</form>
 			</div>
 
-			<h2 class="text-center mb-3">新着</h2>
-			<div class="row row-cols-lg-5 row-cols-2 g-3 mb-5">
-				<div class="col" th:each="newRestaurant : ${newRestaurants}">
-					<a th:href="@{/restaurants/__${newRestaurant.getId()}__}" class="link-dark nagoyameshi-card-link">
-						<div class="card h-100">
-							<img th:if="${newRestaurant.getImageName()}"
-								th:src="@{/storage/__${newRestaurant.getImageName()}__}"
-								class="card-img-top nagoyameshi-vertical-card-image" alt="店舗画像">
-							<img th:unless="${newRestaurant.getImageName()}" th:src="@{/images/noImage.png}"
-								class="card-img-top nagoyameshi-vertical-card-image" alt="NO IMAGE">
-							<div class="card-body">
-								<h3 class="card-title" th:text="${newRestaurant.getName()}"></h3>
-								<p class="card-text mb-1">
-									<small class="text-muted" th:text="${newRestaurant.getAddress()}"></small>
-								</p>
-								<p class="card-text">
-									<span
-										th:text="${#numbers.formatInteger(newRestaurant.getPrice(), 1, 'COMMA') + '円 / 泊'}"></span>
-								</p>
-							</div>
-						</div>
-					</a>
-				</div>
-			</div>
 
-			<div class="row justify-content-center">
-				<div class="col-xl-5 col-lg-6 col-md-8">
 
-					<h2 class="text-center mb-3">カテゴリから探す</h2>
-
-					<table class="table">
-						<tbody>
-							<tr>
-								<tr th:each="restaurant : ${restaurants}">
-								<td>
-									<a th:href="@{/restaurants/__${category.category}__}" th:text="${category.category}"></a>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
 		</main>
+
+		<h2 class="text-center mb-3">新着</h2>
+		<div class="row row-cols-lg-5 row-cols-2 g-3 mb-5">
+			<div class="col" th:each="newRestaurants : ${newRestaurants}">
+				<a th:href="@{/restaurants/__${newRestaurants.getId()}__}" class="link-dark nagoyameshi-card-link">
+					<div class="card h-100">
+						<img th:if="${newRestaurants.getImageName()}"
+							th:src="@{/storage/__${newRestaurants.getImageName()}__}"
+							class="card-img-top nagoyameshi-vertical-card-image" alt="店舗画像">
+						<img th:unless="${newRestaurants.getImageName()}" th:src="@{/images/noImage.png}"
+							class="card-img-top nagoyameshi-vertical-card-image" alt="NO IMAGE">
+						<div class="card-body">
+							<h3 class="card-title" th:text="${newRestaurants.getName()}"></h3>
+							<p class="card-text mb-1">
+								<small class="text-muted" th:text="${newRestaurants.getAddress()}"></small>
+							</p>
+							<p class="card-text">
+								<span
+									th:text="${newRestaurants.getCategory()}"></span>
+							</p>
+							<p class="card-text">
+								<span
+									th:text="${#numbers.formatInteger(newRestaurants.getPrice(), 1, 'COMMA') + '円 / 人'}"></span>
+							</p>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+
 
 		<!-- フッター -->
 		<div th:replace="~{fragment :: footer}"></div>
