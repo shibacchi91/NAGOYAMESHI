@@ -105,6 +105,7 @@
 								<div class="col">
 									<span th:if="${user.role.membership == 'ROLE_GENERAL'}">無料会員</span>
 									<span th:if="${user.role.membership == 'ROLE_PREMIUM'}">有料会員</span>
+									<span th:if="${user.role.membership == 'ROLE_ADMIN'}">管理者</span>
 								</div>
 							</div>
 						</div>

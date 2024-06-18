@@ -41,9 +41,13 @@ public class AdminRestaurantController {
 		Page<Restaurant> restaurantPage;
 
 		if (keyword != null && !keyword.isEmpty()) {
-			restaurantPage = restaurantRepository.findByNameLike("%" + keyword + "%", pageable);
+			restaurantPage = restaurantRepository.findByNameLikeOrAddressLikeOrCategoryLikeOrderByPriceAsc(
+					"%" + keyword + "%",
+					"%" + keyword + "%", "%" + keyword + "%", pageable);
 		} else {
-			restaurantPage = restaurantRepository.findAll(pageable);
+			restaurantPage = restaurantRepository.findByNameLikeOrAddressLikeOrCategoryLikeOrderByCreatedAtDesc(
+					"%" + keyword + "%",
+					"%" + keyword + "%", "%" + keyword + "%", pageable);
 		}
 
 		model.addAttribute("restaurantPage", restaurantPage);
@@ -67,24 +71,27 @@ public class AdminRestaurantController {
 		return "admin/restaurants/register";
 	}
 
-    @PostMapping("/create")
-    public String create(@ModelAttribute @Validated RestaurantRegisterForm restaurantRegisterForm, BindingResult bindingResult, RedirectAttributes redirectAttributes) {        
-        if (bindingResult.hasErrors()) {
-            return "admin/restaurants/register";
-        }
-        
-        restaurantService.create(restaurantRegisterForm);
-        redirectAttributes.addFlashAttribute("successMessage", "店舗を登録しました。");    
-        
-        return "redirect:/admin/restaurants";
-    }    
-	
+	@PostMapping("/create")
+	public String create(@ModelAttribute @Validated RestaurantRegisterForm restaurantRegisterForm,
+			BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+		if (bindingResult.hasErrors()) {
+			return "admin/restaurants/register";
+		}
+
+		restaurantService.create(restaurantRegisterForm);
+		redirectAttributes.addFlashAttribute("successMessage", "店舗を登録しました。");
+
+		return "redirect:/admin/restaurants";
+	}
+
 	@GetMapping("/{id}/edit")
 	public String edit(@PathVariable(name = "id") Integer id, Model model) {
 		Restaurant restaurant = restaurantRepository.getReferenceById(id);
 		String imageName = restaurant.getImageName();
-		RestaurantEditForm restaurantEditForm = new RestaurantEditForm(restaurant.getId(), restaurant.getName(), restaurant.getCategory(),
-				null, restaurant.getDescription(), restaurant.getPrice(), restaurant.getCapacity(), restaurant.getPostalCode(),
+		RestaurantEditForm restaurantEditForm = new RestaurantEditForm(restaurant.getId(), restaurant.getName(),
+				restaurant.getCategory(),
+				null, restaurant.getDescription(), restaurant.getPrice(), restaurant.getCapacity(),
+				restaurant.getPostalCode(),
 				restaurant.getAddress(), restaurant.getPhoneNumber());
 
 		model.addAttribute("imageName", imageName);
@@ -92,25 +99,26 @@ public class AdminRestaurantController {
 
 		return "admin/restaurants/edit";
 	}
-	
-    @PostMapping("/{id}/update")
-    public String update(@ModelAttribute @Validated RestaurantEditForm restaurantEditForm, BindingResult bindingResult, RedirectAttributes redirectAttributes) {        
-        if (bindingResult.hasErrors()) {
-            return "admin/restaurants/edit";
-        }
-        
-        restaurantService.update(restaurantEditForm);
-        redirectAttributes.addFlashAttribute("successMessage", "店舗情報を編集しました。");
-        
-        return "redirect:/admin/restaurants";
-    }
-	
-    @PostMapping("/{id}/delete")
-    public String delete(@PathVariable(name = "id") Integer id, RedirectAttributes redirectAttributes) {        
-        restaurantRepository.deleteById(id);
-                
-        redirectAttributes.addFlashAttribute("successMessage", "店舗を削除しました。");
-        
-        return "redirect:/admin/restaurants";
-    }    
+
+	@PostMapping("/{id}/update")
+	public String update(@ModelAttribute @Validated RestaurantEditForm restaurantEditForm, BindingResult bindingResult,
+			RedirectAttributes redirectAttributes) {
+		if (bindingResult.hasErrors()) {
+			return "admin/restaurants/edit";
+		}
+
+		restaurantService.update(restaurantEditForm);
+		redirectAttributes.addFlashAttribute("successMessage", "店舗情報を編集しました。");
+
+		return "redirect:/admin/restaurants";
+	}
+
+	@PostMapping("/{id}/delete")
+	public String delete(@PathVariable(name = "id") Integer id, RedirectAttributes redirectAttributes) {
+		restaurantRepository.deleteById(id);
+
+		redirectAttributes.addFlashAttribute("successMessage", "店舗を削除しました。");
+
+		return "redirect:/admin/restaurants";
+	}
 }

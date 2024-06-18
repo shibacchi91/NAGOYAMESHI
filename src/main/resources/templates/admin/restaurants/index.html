@@ -24,7 +24,7 @@
 							<form method="get" th:action="@{/admin/restaurants}" class="mb-3">
 								<div class="input-group">
 									<input type="text" class="form-control" name="keyword" th:value="${keyword}"
-										placeholder="店舗名">
+										placeholder="店舗名・住所・カテゴリ">
 									<button type="submit" class="btn text-white shadow-sm nagoyameshi-btn">検索</button>
 								</div>
 							</form>
@@ -41,6 +41,7 @@
 								<tr>
 									<th scope="col">ID</th>
 									<th scope="col">店舗名</th>
+									<th scope="col">カテゴリ</th>
 									<th scope="col">郵便番号</th>
 									<th scope="col">住所</th>
 									<th scope="col">電話番号</th>
@@ -52,15 +53,18 @@
 								<tr th:each="restaurant : ${restaurantPage}">
 									<td th:text="${restaurant.getId()}"></td>
 									<td th:text="${restaurant.getName()}"></td>
+									<td th:text="${restaurant.getCategory()}"></td>
 									<td th:text="${restaurant.getPostalCode()}"></td>
 									<td th:text="${restaurant.getAddress()}"></td>
 									<td th:text="${restaurant.getPhoneNumber()}"></td>
 									<td><a th:href="@{/admin/restaurants/__${restaurant.getId()}__}">詳細</a></td>
 									<td><a href="#" class="nagoyameshi-link-danger" data-bs-toggle="modal"
-											th:data-bs-target="${'#deleteRestaurantModal' + restaurant.getId()}">削除</a></td>
+											th:data-bs-target="${'#deleteRestaurantModal' + restaurant.getId()}">削除</a>
+									</td>
 
 									<!-- 削除用モーダル -->
-									<div class="modal fade" th:id="${'deleteRestaurantModal' + restaurant.getId()}" tabindex="-1"
+									<div class="modal fade" th:id="${'deleteRestaurantModal' + restaurant.getId()}"
+										tabindex="-1"
 										th:aria-labelledby="${'deleteRestaurantModalLabel' + restaurant.getId()}">
 										<div class="modal-dialog">
 											<div class="modal-content">
