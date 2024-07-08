@@ -36,4 +36,6 @@ public class SignupForm {
 	private String passwordConfirmation;
 	
 	private String membershipType; // "ROLE_GENERAL" または "ROLE_PREMIUM"
+	
+	private String stripePaymentId;
 }

@@ -23,7 +23,10 @@ import com.example.nagoyameshi.form.UserEditForm;
 import com.example.nagoyameshi.repository.UserRepository;
 import com.example.nagoyameshi.security.UserDetailsImpl;
 import com.example.nagoyameshi.security.UserDetailsServiceImpl;
+import com.example.nagoyameshi.service.StripeService;
 import com.example.nagoyameshi.service.UserService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("/user")
@@ -32,12 +35,16 @@ public class UserController {
 	private final UserRepository userRepository;
 	private final UserService userService;
 	private final UserDetailsServiceImpl userDetailsServiceImpl;
+	private final StripeService stripeService;
 
-	 @Autowired
-	public UserController(UserRepository userRepository, UserService userService, UserDetailsServiceImpl userDetailsServiceImpl) {
+	@Autowired
+	public UserController(UserRepository userRepository, UserService userService,
+			UserDetailsServiceImpl userDetailsServiceImpl, StripeService stripeService) {
 		this.userRepository = userRepository;
 		this.userService = userService;
 		this.userDetailsServiceImpl = userDetailsServiceImpl;
+		this.stripeService = stripeService;
+
 	}
 
 	@GetMapping
@@ -55,7 +62,7 @@ public class UserController {
 		return "user/index";
 	}
 
-	@GetMapping("/edit")
+	@GetMapping("/edit") // 会員登録
 	public String edit(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, Model model) {
 		User user = userRepository.getReferenceById(userDetailsImpl.getUser().getId());
 		UserEditForm userEditForm = new UserEditForm(user.getId(), user.getName(), user.getFurigana(),
@@ -66,17 +73,59 @@ public class UserController {
 		return "user/edit";
 	}
 
-	@PostMapping("/update")
-	public String update(@ModelAttribute @Validated UserEditForm userEditForm, BindingResult bindingResult,
-			RedirectAttributes redirectAttributes,@AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+	@PostMapping("/edit") // メンバーシップ選択時に処理開始
+	public String processEdit(@ModelAttribute @Validated UserEditForm userEditForm, BindingResult bindingResult,
+			RedirectAttributes redirectAttributes, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
+			HttpServletRequest httpServletRequest, Model model) {
 
-		// 会員プランが「無料会員」の場合、membershipを「一般」に設定する
+		// 会員プランが「無料会員」の場合、membershipを「ROLE_GENERAL」に設定する
 		if ("無料会員".equals(userEditForm.getMembership())) {
 			userEditForm.setMembership("ROLE_GENERAL");
 		}
-		// 会員プランが「有料会員」の場合、membershipを「プレミアム」に設定する
+		// 会員プランが「有料会員」の場合、membershipを「ROLE_PREMIUM」に設定する
 		else if ("有料会員".equals(userEditForm.getMembership())) {
+			String sessionId = stripeService.createStripeSession(userEditForm, httpServletRequest);
 			userEditForm.setMembership("ROLE_PREMIUM");
+			model.addAttribute("userEditForm", userEditForm);
+			model.addAttribute("sessionId", sessionId);
+
+			return "redirect:/subscription/confirm";
+		}
+
+		// 他のバリデーションと処理を行う
+
+		userService.update(userEditForm);
+		UserDetails updatedUserDetails = userDetailsServiceImpl.loadUserByUsername(userDetailsImpl.getUsername());
+
+		// 新しい認証トークンを作成
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+				updatedUserDetails, updatedUserDetails.getPassword(), updatedUserDetails.getAuthorities());
+
+		// セキュリティコンテキストに新しい認証トークンを設定
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+
+		redirectAttributes.addFlashAttribute("successMessage", "会員情報を編集しました。");
+		return "redirect:/user";
+	}
+
+	@PostMapping("/update")
+	public String update(@ModelAttribute @Validated UserEditForm userEditForm, BindingResult bindingResult,
+			RedirectAttributes redirectAttributes, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
+			HttpServletRequest httpServletRequest, Model model) {
+
+		// 会員プランが「無料会員」の場合、membershipを「ROLE_GENERAL」に設定する
+		if ("ROLE_GENERAL".equals(userEditForm.getMembership())) {
+			userEditForm.setMembership("ROLE_GENERAL");
+		}
+		// 会員プランが「有料会員」の場合、membershipを「ROLE_PREMIUM」に設定する
+		else if ("ROLE_PREMIUM".equals(userEditForm.getMembership())) {
+			String sessionId = stripeService.createStripeSession(userEditForm, httpServletRequest);
+			userEditForm.setMembership("ROLE_PREMIUM");
+			model.addAttribute("userEditForm", userEditForm);
+			model.addAttribute("sessionId", sessionId);
+
+			return "subscription/confirm";
+
 		}
 		// メールアドレスが変更されており、かつ登録済みであれば、BindingResultオブジェクトにエラー内容を追加する
 		if (userService.isEmailChanged(userEditForm) && userService.isEmailRegistered(userEditForm.getEmail())) {
@@ -85,24 +134,25 @@ public class UserController {
 		}
 
 		if (bindingResult.hasErrors()) {
-			return "user/edit";
+			return "redirect:/user/edit";
 		}
 
-		
-		
 		userService.update(userEditForm);
-        UserDetails updatedUserDetails = userDetailsServiceImpl.loadUserByUsername(userDetailsImpl.getUsername());
+		UserDetails updatedUserDetails = userDetailsServiceImpl.loadUserByUsername(userDetailsImpl.getUsername());
 
-        // 新しい認証トークンを作成
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                updatedUserDetails, updatedUserDetails.getPassword(), updatedUserDetails.getAuthorities());
+		// 新しい認証トークンを作成
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+				updatedUserDetails, updatedUserDetails.getPassword(), updatedUserDetails.getAuthorities());
 
-        // セキュリティコンテキストに新しい認証トークンを設定
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+		// セキュリティコンテキストに新しい認証トークンを設定
+		SecurityContextHolder.getContext().setAuthentication(authentication);
 
-		
 		redirectAttributes.addFlashAttribute("successMessage", "会員情報を編集しました。");
-
 		return "redirect:/user";
+	}
+
+	@GetMapping("/subscription/confirm")
+	public String confirm(Model model) {
+		return "subscription/confirm"; // subscription/confirm.html を表示
 	}
 }

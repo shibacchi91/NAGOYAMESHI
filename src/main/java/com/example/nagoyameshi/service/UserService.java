@@ -25,41 +25,46 @@ public class UserService {
 		this.passwordEncoder = passwordEncoder;
 	}
 
+	/*新規登録*/
 	@Transactional
-	public User create(SignupForm signupForm) {
+	public User  create(SignupForm signupForm){
 		User user = new User();
 
 		//signupForm の membershipType に基づいて Role を選択する
 		Role role;
-		if ("ROLE_PREMIUM".equals(signupForm.getMembershipType())) {
+		if ("ROLE_PREMIUM".equals(signupForm.getMembershipType()))  {
 			role = roleRepository.findByMembership("ROLE_PREMIUM");//有料会員
 		} else {
 			role = roleRepository.findByMembership("ROLE_GENERAL");//無料会員
 		}
 
-		user.setName(signupForm.getName());
-		user.setFurigana(signupForm.getFurigana());
-		user.setPostalCode(signupForm.getPostalCode());
-		user.setAddress(signupForm.getAddress());
-		user.setPhoneNumber(signupForm.getPhoneNumber());
-		user.setEmail(signupForm.getEmail());
-		user.setPassword(passwordEncoder.encode(signupForm.getPassword()));
-		user.setRole(role);
-		user.setEnabled(false);
+	    user.setName(signupForm.getName());
+	    user.setFurigana(signupForm.getFurigana());
+	    user.setPostalCode(signupForm.getPostalCode());
+	    user.setAddress(signupForm.getAddress());
+	    user.setPhoneNumber(signupForm.getPhoneNumber());
+	    user.setEmail(signupForm.getEmail());
+	    user.setPassword(passwordEncoder.encode(signupForm.getPassword()));
+	    user.setRole(role);
+	    user.setEnabled(false);
 
 		return userRepository.save(user);
 	}
 
+	
+	/*	編集*/
 	@Transactional
 	public void update(UserEditForm userEditForm) {
-		User user = userRepository.getReferenceById(userEditForm.getId());
+		 Integer userId = userEditForm.getId();
+		    User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Userが見つかりません"));
 
-		user.setName(userEditForm.getName());
-		user.setFurigana(userEditForm.getFurigana());
-		user.setPostalCode(userEditForm.getPostalCode());
-		user.setAddress(userEditForm.getAddress());
-		user.setPhoneNumber(userEditForm.getPhoneNumber());
-		user.setEmail(userEditForm.getEmail());
+
+		    user.setName(userEditForm.getName());
+		    user.setFurigana(userEditForm.getFurigana());
+		    user.setPostalCode(userEditForm.getPostalCode());
+		    user.setAddress(userEditForm.getAddress());
+		    user.setPhoneNumber(userEditForm.getPhoneNumber());
+		    user.setEmail(userEditForm.getEmail());
 
 		Role role;
 		
@@ -76,7 +81,8 @@ public class UserService {
 			break;
 		default:
 			throw new IllegalArgumentException("不正な会員プラン: " + userEditForm.getMembership());
-		}
+	    }
+	
 
 		user.setRole(role);
 
