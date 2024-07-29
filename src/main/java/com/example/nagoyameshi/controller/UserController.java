@@ -123,7 +123,8 @@ public class UserController {
 			userEditForm.setMembership("ROLE_PREMIUM");
 			model.addAttribute("userEditForm", userEditForm);
 			model.addAttribute("sessionId", sessionId);
-
+			model.addAttribute("name", sessionId);
+			
 			return "subscription/confirm";
 
 		}

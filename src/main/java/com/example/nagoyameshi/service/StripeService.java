@@ -20,17 +20,64 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class StripeService {
-	   @Value("${stripe.api-key}")
-	    private String stripeApiKey;
-	    
-	     private final UserService userService;
-	     
-	     public StripeService(UserService userService) {
-	         this.userService = userService;
-	     }    
+	@Value("${stripe.api-key}")
+	private String stripeApiKey;
+
+	private final UserService userService;
+
+	public StripeService(UserService userService) {
+		this.userService = userService;
+	}
+
 	// セッションを作成し、Stripeに必要な情報を返す
+	public String createStripeSession(SignupForm signupForm, HttpServletRequest httpServletRequest) {
+		Stripe.apiKey = stripeApiKey;
+		String requestUrl = new String(httpServletRequest.getRequestURL());
+		SessionCreateParams params = SessionCreateParams.builder()
+				.addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+				.addLineItem(
+						SessionCreateParams.LineItem.builder()
+								.setPriceData(
+										SessionCreateParams.LineItem.PriceData.builder()
+												.setProductData(
+														SessionCreateParams.LineItem.PriceData.ProductData.builder()
+																.setName(signupForm.getName())
+																.build())
+												.setUnitAmount((long) 300)
+												.setCurrency("jpy")
+												.build())
+								.setQuantity(1L)
+								.build())
+				.setMode(SessionCreateParams.Mode.PAYMENT)
+				.setSuccessUrl(
+						requestUrl.replaceAll("/user/[A-Za-z]+", "") + "/user")
+				.setCancelUrl(requestUrl.replace("/subscription/confirm", ""))
+				.setPaymentIntentData(
+						SessionCreateParams.PaymentIntentData.builder()
+								.putMetadata("id", "0") // 新規作成のためIDは0
+								.putMetadata("Name", signupForm.getName())
+								.putMetadata("Furigana", signupForm.getFurigana())
+								.putMetadata("PostalCode", signupForm.getPostalCode())
+								.putMetadata("Address", signupForm.getAddress())
+								.putMetadata("PhoneNumber", signupForm.getPhoneNumber())
+								.putMetadata("Email", signupForm.getEmail())
+								.putMetadata("Password", signupForm.getPassword())
+								.putMetadata("MembershipType", signupForm.getMembershipType())
+								.putMetadata("actionType", "create") // 新規作成を示すフィールド
+								.build())
+				.build();
+		try {
+			Session session = Session.create(params);
+			return session.getId();
+		} catch (StripeException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+
+	// アップグレードの場合のセッション作成メソッド
 	public String createStripeSession(UserEditForm userEditForm, HttpServletRequest httpServletRequest) {
-		Stripe.apiKey = "sk_test_51P53pqDtHZHUakkXNzKwgyNpZ1Z9eCxrpt4wPUH8HvpSP7knGTe9qwrKAbf7VVa2QyHjMVnlv34mmFi25RMEbYWJ00W1C5yIMH";
+		Stripe.apiKey = stripeApiKey;
 		String requestUrl = new String(httpServletRequest.getRequestURL());
 		SessionCreateParams params = SessionCreateParams.builder()
 				.addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
@@ -49,7 +96,7 @@ public class StripeService {
 								.build())
 				.setMode(SessionCreateParams.Mode.PAYMENT)
 				.setSuccessUrl(
-						requestUrl.replaceAll("subscription/confirm", "") + "/subscription/confirm")
+						requestUrl.replaceAll("/user/[A-Za-z]+", "") + "/user")
 				.setCancelUrl(requestUrl.replace("/subscription/confirm", ""))
 				.setPaymentIntentData(
 						SessionCreateParams.PaymentIntentData.builder()
@@ -60,7 +107,7 @@ public class StripeService {
 								.putMetadata("Address", userEditForm.getAddress())
 								.putMetadata("PhoneNumber", userEditForm.getPhoneNumber())
 								.putMetadata("Email", userEditForm.getEmail())
-
+								.putMetadata("actionType", "update") // アップグレードを示すフィールド
 								.build())
 				.build();
 		try {
@@ -72,41 +119,53 @@ public class StripeService {
 		}
 	}
 
-	
-    public void processSessionCompleted(Event event) {
-        Optional<StripeObject> optionalStripeObject = event.getDataObjectDeserializer().getObject();
-        optionalStripeObject.ifPresentOrElse(stripeObject -> {
-            Session session = (Session)stripeObject;
-            SessionRetrieveParams params = SessionRetrieveParams.builder().addExpand("payment_intent").build();
+	public void processSessionCompleted(Event event) {
+		Optional<StripeObject> optionalStripeObject = event.getDataObjectDeserializer().getObject();
+		optionalStripeObject.ifPresentOrElse(stripeObject -> {
+			Session session = (Session) stripeObject;
+			SessionRetrieveParams params = SessionRetrieveParams.builder().addExpand("payment_intent").build();
 
-            try {
-                session = Session.retrieve(session.getId(), params, null);
-                Map<String, String> paymentIntentObject = session.getPaymentIntentObject().getMetadata();
+			try {
+				session = Session.retrieve(session.getId(), params, null);
+				Map<String, String> paymentIntentObject = session.getPaymentIntentObject().getMetadata();
+				String actionType = paymentIntentObject.get("actionType");
 
-                SignupForm signupForm = new SignupForm();
-                signupForm.setName(paymentIntentObject.get("Name"));
-                signupForm.setFurigana(paymentIntentObject.get("Furigana"));
-                signupForm.setPostalCode(paymentIntentObject.get("PostalCode"));
-                signupForm.setAddress(paymentIntentObject.get("Address"));
-                signupForm.setPhoneNumber(paymentIntentObject.get("PhoneNumber"));
-                signupForm.setEmail(paymentIntentObject.get("Email"));
-                signupForm.setPassword("defaultPassword"); // パスワードは適切な方法で設定する必要があります
-                signupForm.setMembershipType("ROLE_PREMIUM");
-                signupForm.setStripePaymentId(paymentIntentObject.get("stripePaymentId"));
+				if ("create".equals(actionType)) {
+					SignupForm signupForm = new SignupForm();
+					signupForm.setName(paymentIntentObject.get("Name"));
+					signupForm.setFurigana(paymentIntentObject.get("Furigana"));
+					signupForm.setPostalCode(paymentIntentObject.get("PostalCode"));
+					signupForm.setAddress(paymentIntentObject.get("Address"));
+					signupForm.setPhoneNumber(paymentIntentObject.get("PhoneNumber"));
+					signupForm.setEmail(paymentIntentObject.get("Email"));
+					signupForm.setPassword(paymentIntentObject.get("Password"));
+					signupForm.setMembershipType("ROLE_PREMIUM");
+					userService.create(signupForm);
+				} else if ("update".equals(actionType)) {
+					UserEditForm userEditForm = new UserEditForm();
+					userEditForm.setId(Integer.parseInt(paymentIntentObject.get("id")));
+					userEditForm.setName(paymentIntentObject.get("Name"));
+					userEditForm.setFurigana(paymentIntentObject.get("Furigana"));
+					userEditForm.setPostalCode(paymentIntentObject.get("PostalCode"));
+					userEditForm.setAddress(paymentIntentObject.get("Address"));
+					userEditForm.setPhoneNumber(paymentIntentObject.get("PhoneNumber"));
+					userEditForm.setEmail(paymentIntentObject.get("Email"));
+					userEditForm.setMembership("ROLE_PREMIUM");
+					userService.update(userEditForm);
+				}
 
-                userService.create(signupForm);
-                
-            } catch (StripeException e) {
-                e.printStackTrace();
-            }
-            System.out.println("有料会員登録処理が成功しました。");
-            System.out.println("Stripe API Version: " + event.getApiVersion());
-            System.out.println("stripe-java Version: " + Stripe.VERSION);
-        },
-        () -> {
-            System.out.println("有料会員登録処理が失敗しました。");
-            System.out.println("Stripe API Version: " + event.getApiVersion());
-            System.out.println("stripe-java Version: " + Stripe.VERSION);
-        });
-    }
+			} catch (StripeException e) {
+				e.printStackTrace();
+			}
+			System.out.println("有料会員登録処理が成功しました。");
+			System.out.println("Stripe API Version: " + event.getApiVersion());
+			System.out.println("stripe-java Version: " + Stripe.VERSION);
+		},
+				() -> {
+					System.out.println("有料会員登録処理が失敗しました。");
+					System.out.println("Stripe API Version: " + event.getApiVersion());
+					System.out.println("stripe-java Version: " + Stripe.VERSION);
+				});
+	}
+
 }

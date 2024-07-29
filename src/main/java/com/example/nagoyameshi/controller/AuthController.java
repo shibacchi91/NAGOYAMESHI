@@ -15,6 +15,7 @@ import com.example.nagoyameshi.entity.User;
 import com.example.nagoyameshi.entity.VerificationToken;
 import com.example.nagoyameshi.event.SignupEventPublisher;
 import com.example.nagoyameshi.form.SignupForm;
+import com.example.nagoyameshi.service.StripeService;
 import com.example.nagoyameshi.service.UserService;
 import com.example.nagoyameshi.service.VerificationTokenService;
 
@@ -27,12 +28,14 @@ public class AuthController {
 	private final UserService userService;
 	private final SignupEventPublisher signupEventPublisher;
 	private final VerificationTokenService verificationTokenService;
+	private final StripeService stripeService;
 
 	public AuthController(UserService userService, SignupEventPublisher signupEventPublisher,
-			VerificationTokenService verificationTokenService) {
+			VerificationTokenService verificationTokenService, StripeService stripeService) {
 		this.userService = userService;
 		this.signupEventPublisher = signupEventPublisher;
 		this.verificationTokenService = verificationTokenService;
+		this.stripeService = stripeService;
 	}
 
 	@GetMapping("/login")
@@ -64,6 +67,13 @@ public class AuthController {
 		if (bindingResult.hasErrors()) {
 			return "auth/signup";
 		}
+
+		// サブスクリプションの判定
+		if (signupForm.getMembershipType().equals("ROLE_PREMIUM")) {
+			httpServletRequest.getSession().setAttribute("signupForm", signupForm);
+			String sessionId = stripeService.createStripeSession(signupForm, httpServletRequest);
+			 return "redirect:https://checkout.stripe.com/pay/" + sessionId;
+		}
 		User createdUser = userService.create(signupForm);
 		String requestUrl = new String(httpServletRequest.getRequestURL());
 		signupEventPublisher.publishSignupEvent(createdUser, requestUrl);
@@ -88,6 +98,29 @@ public class AuthController {
 		}
 
 		return "auth/verify";
+	}
+
+	@GetMapping("/subscription/confirm")
+	public String showSubscriptionForm(Model model) {
+		model.addAttribute("signupForm", new SignupForm());
+		return "subscription/confirm";
+	}
+
+	@PostMapping("/subscription/confirm")
+	public String confirmSubscription(@ModelAttribute SignupForm signupForm, HttpServletRequest request) {
+		SignupForm sessionForm = (SignupForm) request.getSession().getAttribute("signupForm");
+		if (sessionForm == null) {
+			return "redirect:/signup";
+		}
+
+		// Stripeのサブスクリプションセッションを使用した処理は完了している前提
+		// ユーザーを作成し、アカウントを有効化するなどの処理を実行
+		User createdUser = userService.create(sessionForm);
+		String requestUrl = new String(request.getRequestURL());
+
+		signupEventPublisher.publishSignupEvent(createdUser, requestUrl);
+
+		return "redirect:/user";
 	}
 
 }
