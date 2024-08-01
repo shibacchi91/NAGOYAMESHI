@@ -59,6 +59,16 @@ footer {
 	opacity: 0.8;
 }
 
+/* 退会ボタンのスタイル */
+.nagoyameshi-btn-danger {
+	background-color: #f2594b !important;
+	transition: 0.1s;
+}
+
+.nagoyameshi-btn-danger:hover {
+	opacity: 0.8;
+}
+
 .nagoyameshi-page-link {
 	color: #5196a6;
 }

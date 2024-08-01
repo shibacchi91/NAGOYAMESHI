@@ -68,6 +68,7 @@ public class StripeService {
 				.build();
 		try {
 			Session session = Session.create(params);
+			System.out.println("Created session ID: " + session.getId());
 			return session.getId();
 		} catch (StripeException e) {
 			e.printStackTrace();
@@ -112,6 +113,7 @@ public class StripeService {
 				.build();
 		try {
 			Session session = Session.create(params);
+			System.out.println("Created session ID: " + session.getId());
 			return session.getId();
 		} catch (StripeException e) {
 			e.printStackTrace();
@@ -129,7 +131,8 @@ public class StripeService {
 				session = Session.retrieve(session.getId(), params, null);
 				Map<String, String> paymentIntentObject = session.getPaymentIntentObject().getMetadata();
 				String actionType = paymentIntentObject.get("actionType");
-
+				System.out.println("Action Type: " + actionType);  // デバッグログ
+				
 				if ("create".equals(actionType)) {
 					SignupForm signupForm = new SignupForm();
 					signupForm.setName(paymentIntentObject.get("Name"));
@@ -152,6 +155,7 @@ public class StripeService {
 					userEditForm.setEmail(paymentIntentObject.get("Email"));
 					userEditForm.setMembership("ROLE_PREMIUM");
 					userService.update(userEditForm);
+
 				}
 
 			} catch (StripeException e) {

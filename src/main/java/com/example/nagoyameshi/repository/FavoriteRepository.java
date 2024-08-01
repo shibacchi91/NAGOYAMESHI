@@ -28,4 +28,7 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Integer> {
 
 	@Transactional
 	void deleteByRestaurantId(Integer restaurantId);
+	
+	@Transactional
+	void deleteByUserId(Integer userId);
 }

@@ -27,6 +27,7 @@ import com.example.nagoyameshi.service.StripeService;
 import com.example.nagoyameshi.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
 @RequestMapping("/user")
@@ -89,7 +90,7 @@ public class UserController {
 			model.addAttribute("userEditForm", userEditForm);
 			model.addAttribute("sessionId", sessionId);
 
-			return "redirect:/subscription/confirm";
+			return "/subscription/confirm";
 		}
 
 		// 他のバリデーションと処理を行う
@@ -124,8 +125,8 @@ public class UserController {
 			model.addAttribute("userEditForm", userEditForm);
 			model.addAttribute("sessionId", sessionId);
 			model.addAttribute("name", sessionId);
-			
-			return "subscription/confirm";
+
+			return "redirect:/subscription/confirm";
 
 		}
 		// メールアドレスが変更されており、かつ登録済みであれば、BindingResultオブジェクトにエラー内容を追加する
@@ -156,4 +157,24 @@ public class UserController {
 	public String confirm(Model model) {
 		return "subscription/confirm"; // subscription/confirm.html を表示
 	}
+
+	// 退会処理
+	@PostMapping("/delete")
+	public String deleteUser(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
+			HttpServletRequest request, 
+			HttpServletResponse response, 
+			RedirectAttributes redirectAttributes) {
+		if (userDetailsImpl == null) {
+			redirectAttributes.addFlashAttribute("errorMessage", "退会処理に失敗しました。");
+			return "redirect:/user";
+		}
+
+		// ユーザーの削除処理
+		userService.deleteUser(userDetailsImpl.getUser().getId(), request, response);
+
+
+		redirectAttributes.addFlashAttribute("successMessage", "退会処理が完了しました。");
+		return "redirect:/";
+	}
+
 }

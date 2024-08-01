@@ -61,13 +61,21 @@
 							<div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownGeneral">
 								<a class="dropdown-item nagoyameshi-dropdown-item" th:href="@{/user}">会員情報</a>
 								<a class="dropdown-item nagoyameshi-dropdown-item" th:href="@{/reservations}">予約一覧</a>
-								<div class="dropdown-divider" ></div>
+								<div class="dropdown-divider"></div>
 								<a class="dropdown-item nagoyameshi-dropdown-item" th:href="@{/logout}"
 									onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
 									ログアウト
 								</a>
 								<form class="d-none" id="logout-form" th:action="@{/logout}" method="post"></form>
+								<!-- 退会ボタン -->
+								<a class="dropdown-item nagoyameshi-link-danger" th:href="@{/user/delete}"
+									onclick="event.preventDefault(); document.getElementById('delete-form').submit();">
+									退会
+								</a>
+								<form class="d-none" id="delete-form" th:action="@{/user/delete}" method="post"></form>
+
 							</div>
+
 						</li>
 
 						<!-- 有料会員ログイン済みであれば表示する -->
@@ -80,13 +88,19 @@
 							<div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownGeneral">
 								<a class="dropdown-item nagoyameshi-dropdown-item" th:href="@{/user}">会員情報</a>
 								<a class="dropdown-item nagoyameshi-dropdown-item" th:href="@{/reservations}">予約一覧</a>
-								<a class="dropdown-item nagoyameshi-dropdown-item" th:href="@{/favorites}">お気に入り一覧</a>  
+								<a class="dropdown-item nagoyameshi-dropdown-item" th:href="@{/favorites}">お気に入り一覧</a>
 								<div class="dropdown-divider"></div>
 								<a class="dropdown-item nagoyameshi-dropdown-item" th:href="@{/logout}"
 									onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
 									ログアウト
 								</a>
 								<form class="d-none" id="logout-form" th:action="@{/logout}" method="post"></form>
+								<!-- 退会ボタン -->
+								<a class="dropdown-item nagoyameshi-link-danger" th:href="@{/user/delete}"
+									onclick="event.preventDefault(); document.getElementById('delete-form').submit();">
+									退会
+								</a>
+								<form class="d-none" id="delete-form" th:action="@{/user/delete}" method="post"></form>
 							</div>
 						</li>
 						<!-- 管理者であれば表示する -->
