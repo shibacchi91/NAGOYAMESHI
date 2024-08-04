@@ -70,7 +70,7 @@ public class UserController {
 				user.getPostalCode(), user.getAddress(), user.getPhoneNumber(), user.getEmail(),
 				user.getRole().getMembership());
 		model.addAttribute("userEditForm", userEditForm);
-		model.addAttribute("membershipOptions", Arrays.asList("無料会員", "有料会員"));
+		model.addAttribute("membershipOptions", Arrays.asList("ROLE_GENERAL", "ROLE_PREMIUM"));
 		return "user/edit";
 	}
 
@@ -80,11 +80,11 @@ public class UserController {
 			HttpServletRequest httpServletRequest, Model model) {
 
 		// 会員プランが「無料会員」の場合、membershipを「ROLE_GENERAL」に設定する
-		if ("無料会員".equals(userEditForm.getMembership())) {
+		if ("ROLE_GENERAL".equals(userEditForm.getMembership())) {
 			userEditForm.setMembership("ROLE_GENERAL");
 		}
 		// 会員プランが「有料会員」の場合、membershipを「ROLE_PREMIUM」に設定する
-		else if ("有料会員".equals(userEditForm.getMembership())) {
+		else if ("ROLE_PREMIUM".equals(userEditForm.getMembership())) {
 			String sessionId = stripeService.createStripeSession(userEditForm, httpServletRequest);
 			userEditForm.setMembership("ROLE_PREMIUM");
 			model.addAttribute("userEditForm", userEditForm);
@@ -124,7 +124,7 @@ public class UserController {
 			userEditForm.setMembership("ROLE_PREMIUM");
 			model.addAttribute("userEditForm", userEditForm);
 			model.addAttribute("sessionId", sessionId);
-
+			System.out.println(sessionId);
 
 			return "redirect:/subscription/confirm";
 
