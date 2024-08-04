@@ -63,7 +63,7 @@ public class UserController {
 		return "user/index";
 	}
 
-	@GetMapping("/edit") // 会員登録
+	@GetMapping("/edit") // 新規会員登録
 	public String edit(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, Model model) {
 		User user = userRepository.getReferenceById(userDetailsImpl.getUser().getId());
 		UserEditForm userEditForm = new UserEditForm(user.getId(), user.getName(), user.getFurigana(),
@@ -90,7 +90,7 @@ public class UserController {
 			model.addAttribute("userEditForm", userEditForm);
 			model.addAttribute("sessionId", sessionId);
 
-			return "/subscription/confirm";
+			return "subscription/confirm";
 		}
 
 		// 他のバリデーションと処理を行う
@@ -109,7 +109,7 @@ public class UserController {
 		return "redirect:/user";
 	}
 
-	@PostMapping("/update")
+	@PostMapping("/update") //会員情報更新
 	public String update(@ModelAttribute @Validated UserEditForm userEditForm, BindingResult bindingResult,
 			RedirectAttributes redirectAttributes, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
 			HttpServletRequest httpServletRequest, Model model) {
@@ -124,7 +124,7 @@ public class UserController {
 			userEditForm.setMembership("ROLE_PREMIUM");
 			model.addAttribute("userEditForm", userEditForm);
 			model.addAttribute("sessionId", sessionId);
-			model.addAttribute("name", sessionId);
+
 
 			return "redirect:/subscription/confirm";
 
