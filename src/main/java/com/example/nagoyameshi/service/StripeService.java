@@ -30,10 +30,21 @@ public class StripeService {
 	}
 
 	// セッションを作成し、Stripeに必要な情報を返す
-	public String createStripeSession(SignupForm signupForm, HttpServletRequest httpServletRequest) {
+	public String createStripeSession(Object form, HttpServletRequest httpServletRequest) {
 		Stripe.apiKey = stripeApiKey;
 		String requestUrl = new String(httpServletRequest.getRequestURL());
-		SessionCreateParams params = SessionCreateParams.builder()
+        // successUrlとcancelUrlの設定
+        String successUrl = "";
+        String cancelUrl = "";
+        
+        if (form instanceof SignupForm) {
+            successUrl = requestUrl.replaceAll("/signup/[A-Za-z]+", "") + "/subscription/authconfirm";
+            cancelUrl = requestUrl.replace("/signup/[A-Za-z]+", "/signup");
+        } else if (form instanceof UserEditForm) {
+            successUrl = requestUrl.replaceAll("/user/[A-Za-z]+", "") + "/subscription/confirm";
+            cancelUrl = requestUrl.replace("/user/[A-Za-z]+", "/user/edit");
+        }
+		SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
 				.addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
 				.addLineItem(
 						SessionCreateParams.LineItem.builder()
@@ -41,7 +52,7 @@ public class StripeService {
 										SessionCreateParams.LineItem.PriceData.builder()
 												.setProductData(
 														SessionCreateParams.LineItem.PriceData.ProductData.builder()
-																.setName(signupForm.getName())
+																.setName(form instanceof SignupForm ? ((SignupForm) form).getName() : ((UserEditForm) form).getName())
 																.build())
 												.setUnitAmount((long) 300)
 												.setCurrency("jpy")
@@ -51,68 +62,40 @@ public class StripeService {
 				.setMode(SessionCreateParams.Mode.PAYMENT)
 				.setSuccessUrl(
 						requestUrl.replaceAll("/user/[A-Za-z]+", "") + "/user")
-				.setCancelUrl(requestUrl.replace("/subscription/confirm", ""))
-				.setPaymentIntentData(
-						SessionCreateParams.PaymentIntentData.builder()
-								.putMetadata("id", "0") // 新規作成のためIDは0
-								.putMetadata("Name", signupForm.getName())
-								.putMetadata("Furigana", signupForm.getFurigana())
-								.putMetadata("PostalCode", signupForm.getPostalCode())
-								.putMetadata("Address", signupForm.getAddress())
-								.putMetadata("PhoneNumber", signupForm.getPhoneNumber())
-								.putMetadata("Email", signupForm.getEmail())
-								.putMetadata("Password", signupForm.getPassword())
-								.putMetadata("MembershipType", signupForm.getMembershipType())
-								.putMetadata("actionType", "create") // 新規作成を示すフィールド
-								.build())
-				.build();
-		try {
-			Session session = Session.create(params);
-			System.out.println("Created session ID: " + session.getId());
-			return session.getId();
-		} catch (StripeException e) {
-			e.printStackTrace();
-			return "";
-		}
-	}
+				.setCancelUrl(requestUrl.replace("/subscription/confirm", ""));
 
-	// アップグレードの場合のセッション作成メソッド
-	public String createStripeSession(UserEditForm userEditForm, HttpServletRequest httpServletRequest) {
-		Stripe.apiKey = stripeApiKey;
-		String requestUrl = new String(httpServletRequest.getRequestURL());
-		SessionCreateParams params = SessionCreateParams.builder()
-				.addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
-				.addLineItem(
-						SessionCreateParams.LineItem.builder()
-								.setPriceData(
-										SessionCreateParams.LineItem.PriceData.builder()
-												.setProductData(
-														SessionCreateParams.LineItem.PriceData.ProductData.builder()
-																.setName(userEditForm.getName())
-																.build())
-												.setUnitAmount((long) 300)
-												.setCurrency("jpy")
-												.build())
-								.setQuantity(1L)
-								.build())
-				.setMode(SessionCreateParams.Mode.PAYMENT)
-				.setSuccessUrl(
-						requestUrl.replaceAll("/user/[A-Za-z]+", "") + "/user")
-				.setCancelUrl(requestUrl.replace("/subscription/confirm", ""))
-				.setPaymentIntentData(
-						SessionCreateParams.PaymentIntentData.builder()
-								.putMetadata("id", userEditForm.getId().toString())
-								.putMetadata("Name", userEditForm.getName())
-								.putMetadata("Furigana", userEditForm.getFurigana())
-								.putMetadata("PostalCode", userEditForm.getPostalCode())
-								.putMetadata("Address", userEditForm.getAddress())
-								.putMetadata("PhoneNumber", userEditForm.getPhoneNumber())
-								.putMetadata("Email", userEditForm.getEmail())
-								.putMetadata("actionType", "update") // アップグレードを示すフィールド
-								.build())
-				.build();
+		SessionCreateParams.PaymentIntentData.Builder paymentIntentDataBuilder = SessionCreateParams.PaymentIntentData.builder();
+
+		if (form instanceof SignupForm) {
+			SignupForm signupForm = (SignupForm) form;
+			paymentIntentDataBuilder
+					.putMetadata("id", "0") // 新規作成のためIDは0
+					.putMetadata("Name", signupForm.getName())
+					.putMetadata("Furigana", signupForm.getFurigana())
+					.putMetadata("PostalCode", signupForm.getPostalCode())
+					.putMetadata("Address", signupForm.getAddress())
+					.putMetadata("PhoneNumber", signupForm.getPhoneNumber())
+					.putMetadata("Email", signupForm.getEmail())
+					.putMetadata("Password", signupForm.getPassword())
+					.putMetadata("MembershipType", signupForm.getMembershipType())
+					.putMetadata("actionType", "create"); // 新規作成を示すフィールド
+		} else if (form instanceof UserEditForm) {
+			UserEditForm userEditForm = (UserEditForm) form;
+			paymentIntentDataBuilder
+					.putMetadata("id", userEditForm.getId().toString())
+					.putMetadata("Name", userEditForm.getName())
+					.putMetadata("Furigana", userEditForm.getFurigana())
+					.putMetadata("PostalCode", userEditForm.getPostalCode())
+					.putMetadata("Address", userEditForm.getAddress())
+					.putMetadata("PhoneNumber", userEditForm.getPhoneNumber())
+					.putMetadata("Email", userEditForm.getEmail())
+					.putMetadata("actionType", "update"); // アップグレードを示すフィールド
+		}
+
+		paramsBuilder.setPaymentIntentData(paymentIntentDataBuilder.build());
+
 		try {
-			Session session = Session.create(params);
+			Session session = Session.create(paramsBuilder.build());
 			System.out.println("Created session ID: " + session.getId());
 			return session.getId();
 		} catch (StripeException e) {
@@ -171,5 +154,4 @@ public class StripeService {
 					System.out.println("stripe-java Version: " + Stripe.VERSION);
 				});
 	}
-
 }

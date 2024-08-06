@@ -72,7 +72,7 @@ public class AuthController {
 		if (signupForm.getMembershipType().equals("ROLE_PREMIUM")) {
 			httpServletRequest.getSession().setAttribute("signupForm", signupForm);
 			String sessionId = stripeService.createStripeSession(signupForm, httpServletRequest);
-			 return "redirect:https://checkout.stripe.com/pay/" + sessionId;
+			 return "/subscription/authconfirm";/* + sessionId;*/
 		}
 		User createdUser = userService.create(signupForm);
 		String requestUrl = new String(httpServletRequest.getRequestURL());
@@ -100,13 +100,13 @@ public class AuthController {
 		return "auth/verify";
 	}
 
-	@GetMapping("/subscription/confirm")
+	@GetMapping("/subscription/authconfirm")
 	public String showSubscriptionForm(Model model) {
 		model.addAttribute("signupForm", new SignupForm());
-		return "subscription/confirm";
+		return "subscription/authconfirm";
 	}
 
-	@PostMapping("/subscription/confirm")
+	@PostMapping("/subscription/authconfirm")
 	public String confirmSubscription(@ModelAttribute SignupForm signupForm, HttpServletRequest request) {
 		SignupForm sessionForm = (SignupForm) request.getSession().getAttribute("signupForm");
 		if (sessionForm == null) {

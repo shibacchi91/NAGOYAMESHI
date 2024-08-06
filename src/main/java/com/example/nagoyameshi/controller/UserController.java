@@ -126,7 +126,7 @@ public class UserController {
 			model.addAttribute("sessionId", sessionId);
 			System.out.println(sessionId);
 
-			return "redirect:/subscription/confirm";
+			return "subscription/confirm";
 
 		}
 		// メールアドレスが変更されており、かつ登録済みであれば、BindingResultオブジェクトにエラー内容を追加する

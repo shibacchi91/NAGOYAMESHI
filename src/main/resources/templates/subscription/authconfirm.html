@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+	<div th:replace="~{fragment :: meta}"></div>
+	<div th:replace="~{fragment :: styles}"></div>
+	<title>登録内容確認</title>
+</head>
+
+<body>
+	<div class="samuraitravel-wrapper">
+		<!-- ヘッダー -->
+		<div th:replace="~{fragment :: header}"></div>
+
+		<main>
+			<div class="container pt-4 pb-5 samuraitravel-container">
+				<div class="row justify-content-center">
+					<div class="col-xl-4 col-lg-5 col-md-7 col-sm-9">
+						<h1 class="mb-4 text-center">新規有料会員登録内容確認</h1>
+						<div>
+							
+							<div th:object="${signupForm}">
+							<span>有料会員登録の決済に進みますか？</span>
+							<div class="d-flex justify-content-center mt-3">
+								<button id="paymentButton" class="btn shadow-sm w-100 samuraitravel-btn">決済する</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<!-- フッター -->
+		<div th:replace="~{fragment :: footer}"></div>
+	</div>
+
+	<div th:replace="~{fragment :: scripts}"></div>
+	<script src="https://js.stripe.com/v3"></script>
+	<script th:inline="javascript">
+		const sessionId = /*[[${sessionId}]]*/"sessionId";
+		console.log(sessionId);
+	</script>
+	<script th:src="@{/js/stripe.js}"></script>
+</body>
+
+</html>
