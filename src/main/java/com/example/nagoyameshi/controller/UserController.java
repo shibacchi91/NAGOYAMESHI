@@ -74,6 +74,7 @@ public class UserController {
 		return "user/edit";
 	}
 
+
 	@PostMapping("/edit") // メンバーシップ選択時に処理開始
 	public String processEdit(@ModelAttribute @Validated UserEditForm userEditForm, BindingResult bindingResult,
 			RedirectAttributes redirectAttributes, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
@@ -161,8 +162,8 @@ public class UserController {
 	// 退会処理
 	@PostMapping("/delete")
 	public String deleteUser(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
-			HttpServletRequest request, 
-			HttpServletResponse response, 
+			HttpServletRequest request,
+			HttpServletResponse response,
 			RedirectAttributes redirectAttributes) {
 		if (userDetailsImpl == null) {
 			redirectAttributes.addFlashAttribute("errorMessage", "退会処理に失敗しました。");
@@ -171,7 +172,6 @@ public class UserController {
 
 		// ユーザーの削除処理
 		userService.deleteUser(userDetailsImpl.getUser().getId(), request, response);
-
 
 		redirectAttributes.addFlashAttribute("successMessage", "退会処理が完了しました。");
 		return "redirect:/";

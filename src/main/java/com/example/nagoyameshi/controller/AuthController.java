@@ -1,5 +1,8 @@
 package com.example.nagoyameshi.controller;
 
+
+
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -20,7 +23,6 @@ import com.example.nagoyameshi.service.UserService;
 import com.example.nagoyameshi.service.VerificationTokenService;
 
 import jakarta.servlet.http.HttpServletRequest;
-
 @Controller
 
 public class AuthController {
@@ -51,7 +53,7 @@ public class AuthController {
 
 	@PostMapping("/signup")
 	public String signup(@ModelAttribute @Validated SignupForm signupForm, BindingResult bindingResult,
-			RedirectAttributes redirectAttributes, HttpServletRequest httpServletRequest) {
+			RedirectAttributes redirectAttributes, HttpServletRequest httpServletRequest, Model model) {
 		// メールアドレスが登録済みであれば、BindingResultオブジェクトにエラー内容を追加する
 		if (userService.isEmailRegistered(signupForm.getEmail())) {
 			FieldError fieldError = new FieldError(bindingResult.getObjectName(), "email", "すでに登録済みのメールアドレスです。");
@@ -72,7 +74,9 @@ public class AuthController {
 		if (signupForm.getMembershipType().equals("ROLE_PREMIUM")) {
 			httpServletRequest.getSession().setAttribute("signupForm", signupForm);
 			String sessionId = stripeService.createStripeSession(signupForm, httpServletRequest);
-			 return "/subscription/authconfirm";/* + sessionId;*/
+		
+			model.addAttribute("sessionId", sessionId); 
+			return "/subscription/authconfirm";/* + sessionId;*/
 		}
 		User createdUser = userService.create(signupForm);
 		String requestUrl = new String(httpServletRequest.getRequestURL());
@@ -106,6 +110,12 @@ public class AuthController {
 		return "subscription/authconfirm";
 	}
 
+	@GetMapping("/user/index")
+	public String userIndex() {
+		return "user/index"; // 対応するビュー名を返す
+	}
+
+	
 	@PostMapping("/subscription/authconfirm")
 	public String confirmSubscription(@ModelAttribute SignupForm signupForm, HttpServletRequest request) {
 		SignupForm sessionForm = (SignupForm) request.getSession().getAttribute("signupForm");
@@ -120,7 +130,7 @@ public class AuthController {
 
 		signupEventPublisher.publishSignupEvent(createdUser, requestUrl);
 
-		return "redirect:/user";
+		return "redirect:/user/index";
 	}
 
 }
