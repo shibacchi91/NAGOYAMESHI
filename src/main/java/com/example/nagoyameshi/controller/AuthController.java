@@ -110,10 +110,7 @@ public class AuthController {
 		return "subscription/authconfirm";
 	}
 
-	@GetMapping("/user/index")
-	public String userIndex() {
-		return "user/index"; // 対応するビュー名を返す
-	}
+
 
 	
 	@PostMapping("/subscription/authconfirm")
@@ -130,7 +127,7 @@ public class AuthController {
 
 		signupEventPublisher.publishSignupEvent(createdUser, requestUrl);
 
-		return "redirect:/user/index";
+		return "redirect:/user";
 	}
 
 }
