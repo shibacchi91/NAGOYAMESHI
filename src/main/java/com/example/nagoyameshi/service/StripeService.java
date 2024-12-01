@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.example.nagoyameshi.entity.User;
+import com.example.nagoyameshi.event.SignupEventPublisher;
 import com.example.nagoyameshi.form.SignupForm;
 import com.example.nagoyameshi.form.UserEditForm;
 import com.stripe.Stripe;
@@ -22,28 +24,32 @@ import jakarta.servlet.http.HttpServletRequest;
 public class StripeService {
 	@Value("${stripe.api-key}")
 	private String stripeApiKey;
-
+	private final SignupEventPublisher signupEventPublisher;
 	private final UserService userService;
 
-	public StripeService(UserService userService) {
+	public StripeService(UserService userService, SignupEventPublisher signupEventPublisher) {
 		this.userService = userService;
+		this.signupEventPublisher = signupEventPublisher;
 	}
 
 	// セッションを作成し、Stripeに必要な情報を返す
 	public String createStripeSession(Object form, HttpServletRequest httpServletRequest) {
 		Stripe.apiKey = stripeApiKey;
 		String requestUrl = new String(httpServletRequest.getRequestURL());
-        // successUrlとcancelUrlの設定
-        String successUrl = "";
-        String cancelUrl = "";
-        
-        if (form instanceof SignupForm) {
-            successUrl = requestUrl.replaceAll("/signup/[A-Za-z]+", "") + "/subscription/authconfirm";
-            cancelUrl = requestUrl.replace("/signup/[A-Za-z]+", "/signup");
-        } else if (form instanceof UserEditForm) {
-            successUrl = requestUrl.replaceAll("/user/[A-Za-z]+", "") + "/subscription/confirm";
-            cancelUrl = requestUrl.replace("/user/[A-Za-z]+", "/user/edit");
-        }
+		// successUrlとcancelUrlの設定
+		String successUrl = "";
+		String cancelUrl = "";
+
+		/*新規登録の場合のURL*/
+		if (form instanceof SignupForm) {
+			successUrl = requestUrl.replaceAll("/signup", "") + "/";
+			cancelUrl = requestUrl;
+			/*アップグレードの場合のURL*/
+		} else if (form instanceof UserEditForm) {
+			successUrl = requestUrl.replaceAll("/user/[A-Za-z]+", "") + "/user";
+			cancelUrl = requestUrl.replace("/user/[A-Za-z]+", "/edit");
+		}
+		/*決済セッションの構築*/
 		SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
 				.addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
 				.addLineItem(
@@ -52,7 +58,9 @@ public class StripeService {
 										SessionCreateParams.LineItem.PriceData.builder()
 												.setProductData(
 														SessionCreateParams.LineItem.PriceData.ProductData.builder()
-																.setName(form instanceof SignupForm ? ((SignupForm) form).getName() : ((UserEditForm) form).getName())
+																.setName(form instanceof SignupForm
+																		? ((SignupForm) form).getName()
+																		: ((UserEditForm) form).getName())
 																.build())
 												.setUnitAmount((long) 300)
 												.setCurrency("jpy")
@@ -60,11 +68,11 @@ public class StripeService {
 								.setQuantity(1L)
 								.build())
 				.setMode(SessionCreateParams.Mode.PAYMENT)
-				.setSuccessUrl(
-						requestUrl.replaceAll("/user/[A-Za-z]+", "") + "/user")
-				.setCancelUrl(requestUrl.replace("/subscription/confirm", ""));
-
-		SessionCreateParams.PaymentIntentData.Builder paymentIntentDataBuilder = SessionCreateParams.PaymentIntentData.builder();
+				.setSuccessUrl(successUrl)
+				.setCancelUrl(cancelUrl);
+		/*PaymentIntentData の構築*/
+		SessionCreateParams.PaymentIntentData.Builder paymentIntentDataBuilder = SessionCreateParams.PaymentIntentData
+				.builder();
 
 		if (form instanceof SignupForm) {
 			SignupForm signupForm = (SignupForm) form;
@@ -78,6 +86,7 @@ public class StripeService {
 					.putMetadata("Email", signupForm.getEmail())
 					.putMetadata("Password", signupForm.getPassword())
 					.putMetadata("MembershipType", signupForm.getMembershipType())
+					.putMetadata("RequestUrl", requestUrl)
 					.putMetadata("actionType", "create"); // 新規作成を示すフィールド
 		} else if (form instanceof UserEditForm) {
 			UserEditForm userEditForm = (UserEditForm) form;
@@ -92,6 +101,7 @@ public class StripeService {
 					.putMetadata("actionType", "update"); // アップグレードを示すフィールド
 		}
 
+		/*セッションの作成と例外処理*/
 		paramsBuilder.setPaymentIntentData(paymentIntentDataBuilder.build());
 
 		try {
@@ -104,18 +114,20 @@ public class StripeService {
 		}
 	}
 
-	public void processSessionCompleted(Event event) {
+	public void processSessionCompleted(Event event ) {
 		Optional<StripeObject> optionalStripeObject = event.getDataObjectDeserializer().getObject();
 		optionalStripeObject.ifPresentOrElse(stripeObject -> {
 			Session session = (Session) stripeObject;
 			SessionRetrieveParams params = SessionRetrieveParams.builder().addExpand("payment_intent").build();
 
+			/*支払い情報の取得とアクションタイプに基づく処理*/
 			try {
 				session = Session.retrieve(session.getId(), params, null);
 				Map<String, String> paymentIntentObject = session.getPaymentIntentObject().getMetadata();
 				String actionType = paymentIntentObject.get("actionType");
-				System.out.println("Action Type: " + actionType);  // デバッグログ
-				
+				System.out.println("Action Type: " + actionType); // デバッグログ
+
+				/*新規ユーザー作成 (create) の処理*/
 				if ("create".equals(actionType)) {
 					SignupForm signupForm = new SignupForm();
 					signupForm.setName(paymentIntentObject.get("Name"));
@@ -126,7 +138,14 @@ public class StripeService {
 					signupForm.setEmail(paymentIntentObject.get("Email"));
 					signupForm.setPassword(paymentIntentObject.get("Password"));
 					signupForm.setMembershipType("ROLE_PREMIUM");
-					userService.create(signupForm);
+
+					User createdUser = userService.create(signupForm);
+					String requestUrl = new String(paymentIntentObject.get("RequestUrl"));
+					signupEventPublisher.publishSignupEvent(createdUser, requestUrl);
+					/*redirectAttributes.addFlashAttribute("successMessage",
+							"ご入力いただいたメールアドレスに認証メールを送信しました。メールに記載されているリンクをクリックし、会員登録を完了してください。");*/
+
+					/*ユーザーのアップグレード (update) の処理*/
 				} else if ("update".equals(actionType)) {
 					UserEditForm userEditForm = new UserEditForm();
 					userEditForm.setId(Integer.parseInt(paymentIntentObject.get("id")));
@@ -140,7 +159,7 @@ public class StripeService {
 					userService.update(userEditForm);
 
 				}
-
+				/*エラーハンドリングとデバッグログ*/
 			} catch (StripeException e) {
 				e.printStackTrace();
 			}

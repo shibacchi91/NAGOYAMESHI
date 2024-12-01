@@ -74,7 +74,6 @@ public class UserController {
 		return "user/edit";
 	}
 
-
 	@PostMapping("/edit") // メンバーシップ選択時に処理開始
 	public String processEdit(@ModelAttribute @Validated UserEditForm userEditForm, BindingResult bindingResult,
 			RedirectAttributes redirectAttributes, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
@@ -154,6 +153,8 @@ public class UserController {
 		return "redirect:/user";
 	}
 
+
+
 	@GetMapping("/subscription/confirm")
 	public String confirm(Model model) {
 		return "subscription/confirm"; // subscription/confirm.html を表示
@@ -171,7 +172,7 @@ public class UserController {
 		}
 
 		// ユーザーの削除処理
-		userService.deleteUser(userDetailsImpl.getUser().getId(), request, response);
+		userService.deleteUser(userDetailsImpl.getId(), request, response);
 
 		redirectAttributes.addFlashAttribute("successMessage", "退会処理が完了しました。");
 		return "redirect:/";

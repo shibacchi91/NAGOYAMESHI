@@ -32,6 +32,9 @@ public class UserEditForm {
 
 	@NotBlank(message = "メールアドレスを入力してください。")
 	private String email;
+	// パスワードを追加
+	
+	
 
 	// 会員プランを表すroleプロパティ
 	private String membership;

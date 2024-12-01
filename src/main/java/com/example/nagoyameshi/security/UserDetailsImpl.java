@@ -33,6 +33,12 @@ import com.example.nagoyameshi.entity.User;
 	     }
 	     
 	     // ハッシュ化済みのパスワードを返す
+	     //@Override
+	     public Integer getId() {
+	         return user.getId();
+	     }
+	     
+	     // ハッシュ化済みのパスワードを返す
 	     @Override
 	     public String getPassword() {
 	         return user.getPassword();

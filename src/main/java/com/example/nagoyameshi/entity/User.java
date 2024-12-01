@@ -1,6 +1,7 @@
 package com.example.nagoyameshi.entity;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 
@@ -59,5 +60,18 @@ public class User {
 
 	@Column(name = "updated_at", insertable = false, updatable = false)
 	private Timestamp updatedAt;
+	
+
+	 // パスワードリセット用のフィールド
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "token_expiration")
+    private LocalDateTime tokenExpiration;
+
+    // トークンの有効性をチェックするメソッド
+    public boolean isResetTokenValid() {
+        return tokenExpiration != null && tokenExpiration.isAfter(LocalDateTime.now());
+    }
 
 }

@@ -132,6 +132,8 @@
 										placeholder="taro.samurai@example.com">
 								</div>
 							</div>
+
+
 							<!--有料無料-->
 							<div class="form-group row mb-3">
 								<div class="col-md-5">
@@ -156,12 +158,31 @@
 										<label class="form-check-label" for="premiumMembership">
 											有料会員
 										</label>
+
+										<span sec:authorize="hasRole('ROLE_PREMIUM')" th:field="*{membership}"
+											id="premiumMembership">
+											<div>
+												<a th:href="@{/subscription/editcard}">
+													カード情報編集
+												</a>
+											</div>
+										</span>
 									</div>
+
 								</div>
+								<!-- 有料会員ログイン済みであれば表示する -->
+
 
 								<div class="form-group d-flex justify-content-center my-4">
 									<button type="submit"
 										class="btn text-white shadow-sm w-50 nagoyameshi-btn">更新</button>
+								</div>
+
+								<!--パスワードを忘れた時のページを使用-->
+								<div class="text-center">
+									<a th:href="@{/auth/forgot-password}">
+										パスワードの変更はこちら
+									</a>
 								</div>
 						</form>
 

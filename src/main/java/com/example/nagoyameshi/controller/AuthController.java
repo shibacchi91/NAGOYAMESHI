@@ -129,5 +129,26 @@ public class AuthController {
 
 		return "redirect:/user";
 	}
+	
+	
+	
+	@GetMapping("/auth/forgot-password")
+	public String showForgotPasswordForm() {
+	    return "auth/forgot-password"; // forgot-password.html を返す
+	}
+	
+	@PostMapping("/auth/forgot-password")
+	public String processForgotPassword(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+	    boolean isEmailSent = userService.sendPasswordResetEmail(email);
+	    
+	    if (isEmailSent) {
+	        redirectAttributes.addFlashAttribute("successMessage", "パスワードリセット用のメールを送信しました。");
+	    } else {
+	        redirectAttributes.addFlashAttribute("errorMessage", "そのメールアドレスは登録されていません。");
+	    }
+	    
+	    return "redirect:/auth/forgot-password";
+	}
+	
 
 }

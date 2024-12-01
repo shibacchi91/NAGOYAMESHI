@@ -1,5 +1,8 @@
 package com.example.nagoyameshi.service;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,16 +33,19 @@ public class UserService {
 	private final FavoriteRepository favoriteRepository;
 	private final ReservationRepository reservationRepository;
 	private final ReviewRepository reviewRepository;
+	private final EmailService emailService;
 
 	public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,
 			FavoriteRepository favoriteRepository, ReservationRepository reservationRepository,
-			ReviewRepository reviewRepository) {
+			ReviewRepository reviewRepository, EmailService emailService) {
 		this.userRepository = userRepository;
 		this.roleRepository = roleRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.favoriteRepository = favoriteRepository;
 		this.reservationRepository = reservationRepository;
 		this.reviewRepository = reviewRepository;
+		this.emailService = emailService;
+
 	}
 
 	/*新規登録*/
@@ -149,4 +155,56 @@ public class UserService {
 			new SecurityContextLogoutHandler().logout(request, response, auth);
 		}
 	}
+
+	/* パスワードリセットトークンの作成とメール送信 */
+	@Transactional
+	public boolean sendPasswordResetEmail(String email) {
+		User user = userRepository.findByEmail(email);
+		if (user == null) {
+			return false;
+		}
+
+		// トークンの生成
+		String resetToken = UUID.randomUUID().toString();
+		user.setResetToken(resetToken);
+		user.setTokenExpiration(LocalDateTime.now().plusHours(1)); // 1時間の有効期限
+		userRepository.save(user);
+
+		// パスワードリセット用URLの作成
+		String resetUrl = "http://localhost:8080/auth/reset-password?resetToken=" + resetToken;
+
+		// メール送信（簡易化）
+		// 実際には、EmailServiceクラスでメール送信を行うことを推奨
+		emailService.sendEmail(
+				user.getEmail(),
+				"パスワードリセット",
+				"以下のリンクからパスワードをリセットしてください: " + resetUrl);
+
+		return true;
+	}
+
+	/* トークンの検証 */
+	@Transactional(readOnly = true)
+	public User validateResetToken(String resetToken) {
+		User user = userRepository.findByResetToken(resetToken);
+		if (user == null || user.getTokenExpiration().isBefore(LocalDateTime.now())) {
+			return null; // 無効または期限切れ
+		}
+		return user;
+	}
+
+	/* パスワードの更新 */
+	@Transactional
+	public void updatePassword(User user, String newPassword) {
+		user.setPassword(passwordEncoder.encode(newPassword));
+		user.setResetToken(null); // トークンを無効化
+		user.setTokenExpiration(null);
+		userRepository.save(user);
+	}
+
+	/* メール送信（簡易的な例） 
+	private void sendEmail(String to, String subject, String body) {
+		// JavaMailSenderを使ったメール送信ロジックをここに記述
+	}*/
+
 }

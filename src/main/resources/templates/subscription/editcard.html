@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--クレジットカード情報編集-->
 <html xmlns:th="https://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
@@ -6,7 +7,7 @@
 
 	<div th:replace="~{fragment :: styles}"></div>
 
-	<title>登録内容確認</title>
+	<title>クレジットカード情報編集</title>
 </head>
 
 <body>
@@ -25,9 +26,8 @@
 						<h1 class="mb-4 text-center">有料会員登録内容確認</h1>
 
 
-						<!---<div th:object="${userEditForm}">-->
-						<div th:object="${SignupForm}">
-							<span>有料会員登録の決済に進みますか？</span>
+						<div th:object="${userEditForm}">
+							<span>クレジットカード情報編集に進みますか？</span>
 
 
 							<div class="d-flex justify-content-center">
